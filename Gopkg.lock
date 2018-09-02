@@ -2,14 +2,6 @@
 
 
 [[projects]]
-  digest = "1:f30bf383ba35c072982b3e271919652f46207b57689c58f507886bfc30558064"
-  name = "github.com/pathfinder-cm/pathfinder-agent"
-  packages = ["model"]
-  pruneopts = "UT"
-  revision = "fb31213bb276c4b9f2db085d29155e2511812187"
-  version = "0.1.0"
-
-[[projects]]
   digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -39,9 +31,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/pathfinder-cm/pathfinder-agent/model",
-    "github.com/sirupsen/logrus",
-  ]
+  input-imports = ["github.com/sirupsen/logrus"]
   solver-name = "gps-cdcl"
   solver-version = 1
