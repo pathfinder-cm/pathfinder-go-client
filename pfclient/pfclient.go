@@ -2,6 +2,7 @@ package pfclient
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -19,6 +20,7 @@ type Pfclient interface {
 	MarkContainerAsProvisioned(node string, hostname string) (bool, error)
 	MarkContainerAsProvisionError(node string, hostname string) (bool, error)
 	MarkContainerAsDeleted(node string, hostname string) (bool, error)
+	StoreMetrics(collectedMetrics pfmodel.Metrics) (bool, error)
 }
 
 type pfclient struct {
@@ -231,6 +233,44 @@ func (p *pfclient) MarkContainerAsDeleted(node string, hostname string) (bool, e
 
 	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
 	req.Header.Set("X-Auth-Token", p.token)
+	res, err := p.httpClient.Do(req)
+	if err != nil {
+		log.Error(err.Error())
+		return false, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(res.Body)
+		log.Error(string(b))
+		return false, errors.New(string(b))
+	}
+
+	return true, nil
+}
+
+func (p *pfclient) StoreMetrics(metrics pfmodel.Metrics) (bool, error) {
+	// Setup address and query params
+	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["StoreMetrics"])
+	u, err := url.Parse(addr)
+	if err != nil {
+		log.Error(err.Error())
+		return false, err
+	}
+	q := u.Query()
+	q.Set("cluster_name", p.cluster)
+	u.RawQuery = q.Encode()
+
+	// Setup request body
+	b, err := json.Marshal(metrics)
+	if err != nil {
+		log.Error(err.Error())
+		return false, err
+	}
+
+	// Create the request and execute it
+	req, _ := http.NewRequest(http.MethodPost, u.String(), bytes.NewBuffer(b))
+	req.Header.Set("X-Auth-Token", p.token)
+	req.Header.Set("Content-Type", "application/json")
 	res, err := p.httpClient.Do(req)
 	if err != nil {
 		log.Error(err.Error())

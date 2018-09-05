@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/pathfinder-cm/pathfinder-go-client/pfmodel"
 )
 
 func TestRegister(t *testing.T) {
@@ -164,5 +166,32 @@ func TestMarkContainerAsDeleted(t *testing.T) {
 	ok, _ := pfclient.MarkContainerAsDeleted(tables[0].node, tables[0].hostname)
 	if ok != true {
 		t.Errorf("Error when marking container as deleted")
+	}
+}
+
+func TestStoreMetrics(t *testing.T) {
+	tables := []struct {
+		metrics pfmodel.Metrics
+	}{
+		{
+			pfmodel.Metrics{
+				Memory: pfmodel.Memory{
+					Used:  100,
+					Free:  200,
+					Total: 400,
+				},
+			},
+		},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+	}))
+	defer func() { testServer.Close() }()
+
+	pfclient := NewPfclient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	ok, _ := pfclient.StoreMetrics(tables[0].metrics)
+	if ok != true {
+		t.Errorf("Error when storing metrics")
 	}
 }
