@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestFetchContainersFromServer(t *testing.T) {
+func TestGetNodes(t *testing.T) {
 	tables := []struct {
 		hostname   string
 		ipaddress  string
@@ -75,5 +75,187 @@ func TestFetchContainersFromServer(t *testing.T) {
 				(*nodes)[i].MemTotalMb,
 				table.memTotalMb)
 		}
+	}
+}
+
+func TestGetNode(t *testing.T) {
+	tables := []struct {
+		hostname   string
+		ipaddress  string
+		createdAt  string
+		memFreeMb  uint64
+		memUsedMb  uint64
+		memTotalMb uint64
+	}{
+		{"test-01", "192.168.1.100", "2018-01-01", 100, 100, 200},
+	}
+
+	b := []byte(`{
+		"api_version": "1.0",
+		"data": {
+			"id": 1,
+			"hostname": "test-01",
+			"ipaddress": "192.168.1.100",
+			"created_at": "2018-01-01",
+			"mem_free_mb": 100,
+			"mem_used_mb": 100,
+			"mem_total_mb": 200
+		}
+	}`)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+	}))
+	defer func() { testServer.Close() }()
+
+	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	node, _ := client.GetNode(tables[0].hostname)
+	if node.Hostname != tables[0].hostname {
+		t.Errorf("Incorrect node hostname generated, got: %s, want: %s.",
+			node.Hostname,
+			tables[0].hostname)
+	}
+
+	if node.Ipaddress != tables[0].ipaddress {
+		t.Errorf("Incorrect node ipaddress generated, got: %s, want: %s.",
+			node.Ipaddress,
+			tables[0].ipaddress)
+	}
+
+	if node.CreatedAt != tables[0].createdAt {
+		t.Errorf("Incorrect node CreatedAt generated, got: %s, want: %s.",
+			node.CreatedAt,
+			tables[0].createdAt)
+	}
+
+	if node.MemFreeMb != tables[0].memFreeMb {
+		t.Errorf("Incorrect node MemFreeMb generated, got: %d, want: %d.",
+			node.MemFreeMb,
+			tables[0].memFreeMb)
+	}
+
+	if node.MemUsedMb != tables[0].memUsedMb {
+		t.Errorf("Incorrect node MemUsedMb generated, got: %d, want: %d.",
+			node.MemUsedMb,
+			tables[0].memUsedMb)
+	}
+
+	if node.MemTotalMb != tables[0].memTotalMb {
+		t.Errorf("Incorrect node MemTotalMb generated, got: %d, want: %d.",
+			node.MemTotalMb,
+			tables[0].memTotalMb)
+	}
+}
+
+func TestGetContainers(t *testing.T) {
+	tables := []struct {
+		hostname  string
+		ipaddress string
+		image     string
+		status    string
+	}{
+		{"test-01", "192.168.1.100", "18.04", "PENDING"},
+		{"test-02", "192.168.1.101", "18.04", "PENDING"},
+		{"test-03", "192.168.1.102", "18.04", "PENDING"},
+	}
+
+	b := []byte(`{
+		"api_version": "1.0",
+		"data": {
+			"items": [
+				{"hostname": "test-01", "ipaddress": "192.168.1.100", "image": "18.04", "status": "PENDING"},
+				{"hostname": "test-02", "ipaddress": "192.168.1.101", "image": "18.04", "status": "PENDING"},
+				{"hostname": "test-03", "ipaddress": "192.168.1.102", "image": "18.04", "status": "PENDING"}
+			]
+		}
+	}`)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+	}))
+	defer func() { testServer.Close() }()
+
+	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	containers, _ := client.GetContainers()
+	for i, table := range tables {
+		if (*containers)[i].Hostname != table.hostname {
+			t.Errorf("Incorrect node hostname generated, got: %s, want: %s.",
+				(*containers)[i].Hostname,
+				table.hostname)
+		}
+
+		if (*containers)[i].Ipaddress != table.ipaddress {
+			t.Errorf("Incorrect node ipaddress generated, got: %s, want: %s.",
+				(*containers)[i].Ipaddress,
+				table.ipaddress)
+		}
+
+		if (*containers)[i].Image != table.image {
+			t.Errorf("Incorrect node Image generated, got: %s, want: %s.",
+				(*containers)[i].Image,
+				table.image)
+		}
+
+		if (*containers)[i].Status != table.status {
+			t.Errorf("Incorrect node Status generated, got: %s, want: %s.",
+				(*containers)[i].Status,
+				table.status)
+		}
+	}
+}
+
+func TestGetContainer(t *testing.T) {
+	tables := []struct {
+		hostname  string
+		ipaddress string
+		image     string
+		status    string
+	}{
+		{"test-01", "192.168.1.100", "18.04", "PENDING"},
+	}
+
+	b := []byte(`{
+		"api_version": "1.0",
+		"data": {
+			"id": 1,
+			"hostname": "test-01",
+			"ipaddress": "192.168.1.100",
+			"image": "18.04",
+			"status": "PENDING"
+		}
+	}`)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+	}))
+	defer func() { testServer.Close() }()
+
+	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	container, _ := client.GetContainer(tables[0].hostname)
+	if container.Hostname != tables[0].hostname {
+		t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
+			container.Hostname,
+			tables[0].hostname)
+	}
+
+	if container.Ipaddress != tables[0].ipaddress {
+		t.Errorf("Incorrect container ipaddress generated, got: %s, want: %s.",
+			container.Ipaddress,
+			tables[0].ipaddress)
+	}
+
+	if container.Image != tables[0].image {
+		t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
+			container.Image,
+			tables[0].image)
+	}
+
+	if container.Status != tables[0].status {
+		t.Errorf("Incorrect container Status generated, got: %s, want: %s.",
+			container.Status,
+			tables[0].status)
 	}
 }
