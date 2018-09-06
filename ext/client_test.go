@@ -259,3 +259,112 @@ func TestGetContainer(t *testing.T) {
 			tables[0].status)
 	}
 }
+
+func TestCreateContainer(t *testing.T) {
+	tables := []struct {
+		hostname string
+		image    string
+	}{
+		{"test-01", "18.04"},
+	}
+
+	b := []byte(`{
+		"api_version": "1.0",
+		"data": {
+			"id": 1,
+			"hostname": "test-01",
+			"ipaddress": "192.168.1.100",
+			"image": "18.04",
+			"status": "PENDING"
+		}
+	}`)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+	}))
+	defer func() { testServer.Close() }()
+
+	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	container, _ := client.CreateContainer(tables[0].hostname, tables[0].image)
+
+	if container.Hostname != tables[0].hostname {
+		t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
+			container.Hostname,
+			tables[0].hostname)
+	}
+
+	if container.Image != tables[0].image {
+		t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
+			container.Image,
+			tables[0].image)
+	}
+}
+
+func TestDeleteContainer(t *testing.T) {
+	tables := []struct {
+		hostname string
+	}{
+		{"test-01"},
+	}
+
+	b := []byte(`{
+		"api_version": "1.0",
+		"data": {
+			"id": 1,
+			"hostname": "test-01",
+			"ipaddress": "192.168.1.100",
+			"image": "18.04",
+			"status": "SCHEDULE_DELETION"
+		}
+	}`)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+	}))
+	defer func() { testServer.Close() }()
+
+	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	container, _ := client.DeleteContainer(tables[0].hostname)
+
+	if container.Hostname != tables[0].hostname {
+		t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
+			container.Hostname,
+			tables[0].hostname)
+	}
+}
+
+func TestRescheduleContainer(t *testing.T) {
+	tables := []struct {
+		hostname string
+	}{
+		{"test-01"},
+	}
+
+	b := []byte(`{
+		"api_version": "1.0",
+		"data": {
+			"id": 1,
+			"hostname": "test-01",
+			"ipaddress": "192.168.1.100",
+			"image": "18.04",
+			"status": "PENDING"
+		}
+	}`)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+	}))
+	defer func() { testServer.Close() }()
+
+	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	container, _ := client.RescheduleContainer(tables[0].hostname)
+
+	if container.Hostname != tables[0].hostname {
+		t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
+			container.Hostname,
+			tables[0].hostname)
+	}
+}

@@ -1,6 +1,7 @@
 package ext
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +17,9 @@ type Client interface {
 	GetNode(string) (*pfmodel.Node, error)
 	GetContainers() (*pfmodel.ContainerList, error)
 	GetContainer(string) (*pfmodel.Container, error)
+	CreateContainer(string, string) (*pfmodel.Container, error)
+	DeleteContainer(string) (*pfmodel.Container, error)
+	RescheduleContainer(string) (*pfmodel.Container, error)
 }
 
 type client struct {
@@ -159,6 +163,116 @@ func (c *client) GetContainer(containerHostname string) (*pfmodel.Container, err
 	u.RawQuery = q.Encode()
 
 	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+	req.Header.Set("X-Auth-Token", c.token)
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(res.Body)
+		log.Error(string(b))
+		return nil, errors.New(string(b))
+	}
+
+	b, _ := ioutil.ReadAll(res.Body)
+	container, err := NewContainerFromByte(b)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	return container, nil
+}
+
+func (c *client) CreateContainer(hostname string, image string) (*pfmodel.Container, error) {
+	addr := fmt.Sprintf("%s/%s", c.pfServerAddr, c.pfApiPath["CreateContainer"])
+	u, err := url.Parse(addr)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("cluster_name", c.cluster)
+	u.RawQuery = q.Encode()
+
+	form := url.Values{}
+	form.Set("container[hostname]", hostname)
+	form.Set("container[image]", image)
+	body := bytes.NewBufferString(form.Encode())
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), body)
+	req.Header.Set("X-Auth-Token", c.token)
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(res.Body)
+		log.Error(string(b))
+		return nil, errors.New(string(b))
+	}
+
+	b, _ := ioutil.ReadAll(res.Body)
+	container, err := NewContainerFromByte(b)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	return container, nil
+}
+
+func (c *client) DeleteContainer(hostname string) (*pfmodel.Container, error) {
+	addr := fmt.Sprintf("%s/%s/%s", c.pfServerAddr, c.pfApiPath["DeleteContainer"], "schedule_deletion")
+	u, err := url.Parse(addr)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("cluster_name", c.cluster)
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
+	req.Header.Set("X-Auth-Token", c.token)
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(res.Body)
+		log.Error(string(b))
+		return nil, errors.New(string(b))
+	}
+
+	b, _ := ioutil.ReadAll(res.Body)
+	container, err := NewContainerFromByte(b)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	return container, nil
+}
+
+func (c *client) RescheduleContainer(hostname string) (*pfmodel.Container, error) {
+	addr := fmt.Sprintf("%s/%s/%s", c.pfServerAddr, c.pfApiPath["RescheduleContainer"], "reschedule")
+	u, err := url.Parse(addr)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("cluster_name", c.cluster)
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
 	req.Header.Set("X-Auth-Token", c.token)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
