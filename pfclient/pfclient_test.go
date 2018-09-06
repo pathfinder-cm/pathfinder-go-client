@@ -171,11 +171,11 @@ func TestMarkContainerAsDeleted(t *testing.T) {
 
 func TestStoreMetrics(t *testing.T) {
 	tables := []struct {
-		metrics pfmodel.Metrics
+		metrics *pfmodel.Metrics
 	}{
 		{
-			pfmodel.Metrics{
-				Memory: pfmodel.Memory{
+			&pfmodel.Metrics{
+				Memory: &pfmodel.Memory{
 					Used:  100,
 					Free:  200,
 					Total: 400,

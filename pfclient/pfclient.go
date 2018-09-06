@@ -20,7 +20,7 @@ type Pfclient interface {
 	MarkContainerAsProvisioned(node string, hostname string) (bool, error)
 	MarkContainerAsProvisionError(node string, hostname string) (bool, error)
 	MarkContainerAsDeleted(node string, hostname string) (bool, error)
-	StoreMetrics(collectedMetrics pfmodel.Metrics) (bool, error)
+	StoreMetrics(collectedMetrics *pfmodel.Metrics) (bool, error)
 }
 
 type pfclient struct {
@@ -248,7 +248,7 @@ func (p *pfclient) MarkContainerAsDeleted(node string, hostname string) (bool, e
 	return true, nil
 }
 
-func (p *pfclient) StoreMetrics(metrics pfmodel.Metrics) (bool, error) {
+func (p *pfclient) StoreMetrics(metrics *pfmodel.Metrics) (bool, error) {
 	// Setup address and query params
 	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["StoreMetrics"])
 	u, err := url.Parse(addr)

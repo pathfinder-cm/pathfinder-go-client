@@ -1,7 +1,7 @@
 package pfmodel
 
 type Metrics struct {
-	Memory Memory `json:"memory"`
+	Memory *Memory `json:"memory"`
 }
 
 type Memory struct {
