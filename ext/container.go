@@ -12,10 +12,11 @@ type ContainerRes struct {
 }
 
 type ContainerDataRes struct {
-	Hostname  string `json:"hostname"`
-	Ipaddress string `json:"ipaddress"`
-	Image     string `json:"image"`
-	Status    string `json:"status"`
+	Hostname     string `json:"hostname"`
+	Ipaddress    string `json:"ipaddress"`
+	Image        string `json:"image"`
+	NodeHostname string `json:"node_hostname"`
+	Status       string `json:"status"`
 }
 
 func NewContainerFromByte(b []byte) (*pfmodel.Container, error) {
@@ -26,10 +27,11 @@ func NewContainerFromByte(b []byte) (*pfmodel.Container, error) {
 	}
 
 	container := pfmodel.Container{
-		Hostname:  res.Data.Hostname,
-		Ipaddress: res.Data.Ipaddress,
-		Image:     res.Data.Image,
-		Status:    res.Data.Status,
+		Hostname:     res.Data.Hostname,
+		Ipaddress:    res.Data.Ipaddress,
+		Image:        res.Data.Image,
+		NodeHostname: res.Data.NodeHostname,
+		Status:       res.Data.Status,
 	}
 
 	return &container, nil

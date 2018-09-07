@@ -150,23 +150,24 @@ func TestGetNode(t *testing.T) {
 
 func TestGetContainers(t *testing.T) {
 	tables := []struct {
-		hostname  string
-		ipaddress string
-		image     string
-		status    string
+		hostname     string
+		ipaddress    string
+		image        string
+		nodeHostname string
+		status       string
 	}{
-		{"test-01", "192.168.1.100", "18.04", "PENDING"},
-		{"test-02", "192.168.1.101", "18.04", "PENDING"},
-		{"test-03", "192.168.1.102", "18.04", "PENDING"},
+		{"test-01", "192.168.1.100", "18.04", "", "PENDING"},
+		{"test-02", "192.168.1.101", "18.04", "test-01", "SCHEDULED"},
+		{"test-03", "192.168.1.102", "18.04", "", "PENDING"},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
 			"items": [
-				{"hostname": "test-01", "ipaddress": "192.168.1.100", "image": "18.04", "status": "PENDING"},
-				{"hostname": "test-02", "ipaddress": "192.168.1.101", "image": "18.04", "status": "PENDING"},
-				{"hostname": "test-03", "ipaddress": "192.168.1.102", "image": "18.04", "status": "PENDING"}
+				{"hostname": "test-01", "ipaddress": "192.168.1.100", "image": "18.04", "node_hostname": "", "status": "PENDING"},
+				{"hostname": "test-02", "ipaddress": "192.168.1.101", "image": "18.04", "node_hostname": "test-01", "status": "SCHEDULED"},
+				{"hostname": "test-03", "ipaddress": "192.168.1.102", "image": "18.04", "node_hostname": "", "status": "PENDING"}
 			]
 		}
 	}`)
@@ -181,25 +182,31 @@ func TestGetContainers(t *testing.T) {
 	containers, _ := client.GetContainers()
 	for i, table := range tables {
 		if (*containers)[i].Hostname != table.hostname {
-			t.Errorf("Incorrect node hostname generated, got: %s, want: %s.",
+			t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
 				(*containers)[i].Hostname,
 				table.hostname)
 		}
 
 		if (*containers)[i].Ipaddress != table.ipaddress {
-			t.Errorf("Incorrect node ipaddress generated, got: %s, want: %s.",
+			t.Errorf("Incorrect container ipaddress generated, got: %s, want: %s.",
 				(*containers)[i].Ipaddress,
 				table.ipaddress)
 		}
 
 		if (*containers)[i].Image != table.image {
-			t.Errorf("Incorrect node Image generated, got: %s, want: %s.",
+			t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
 				(*containers)[i].Image,
 				table.image)
 		}
 
+		if (*containers)[i].NodeHostname != table.nodeHostname {
+			t.Errorf("Incorrect container Node Hostname generated, got: %s, want: %s.",
+				(*containers)[i].NodeHostname,
+				table.image)
+		}
+
 		if (*containers)[i].Status != table.status {
-			t.Errorf("Incorrect node Status generated, got: %s, want: %s.",
+			t.Errorf("Incorrect container Status generated, got: %s, want: %s.",
 				(*containers)[i].Status,
 				table.status)
 		}
@@ -208,22 +215,24 @@ func TestGetContainers(t *testing.T) {
 
 func TestGetContainer(t *testing.T) {
 	tables := []struct {
-		hostname  string
-		ipaddress string
-		image     string
-		status    string
+		hostname     string
+		ipaddress    string
+		image        string
+		nodeHostname string
+		status       string
 	}{
-		{"test-01", "192.168.1.100", "18.04", "PENDING"},
+		{"test-02", "192.168.1.101", "18.04", "test-01", "SCHEDULED"},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
 			"id": 1,
-			"hostname": "test-01",
-			"ipaddress": "192.168.1.100",
+			"hostname": "test-02",
+			"ipaddress": "192.168.1.101",
 			"image": "18.04",
-			"status": "PENDING"
+			"node_hostname": "test-01",
+			"status": "SCHEDULED"
 		}
 	}`)
 
@@ -253,6 +262,12 @@ func TestGetContainer(t *testing.T) {
 			tables[0].image)
 	}
 
+	if container.NodeHostname != tables[0].nodeHostname {
+		t.Errorf("Incorrect container Node Hostname generated, got: %s, want: %s.",
+			container.NodeHostname,
+			tables[0].nodeHostname)
+	}
+
 	if container.Status != tables[0].status {
 		t.Errorf("Incorrect container Status generated, got: %s, want: %s.",
 			container.Status,
@@ -275,6 +290,7 @@ func TestCreateContainer(t *testing.T) {
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
 			"image": "18.04",
+			"node_hostname": "test-01",
 			"status": "PENDING"
 		}
 	}`)
@@ -315,6 +331,7 @@ func TestDeleteContainer(t *testing.T) {
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
 			"image": "18.04",
+			"node_hostname": "test-01",
 			"status": "SCHEDULE_DELETION"
 		}
 	}`)
@@ -349,6 +366,7 @@ func TestRescheduleContainer(t *testing.T) {
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
 			"image": "18.04",
+			"node_hostname": "test-01",
 			"status": "PENDING"
 		}
 	}`)
