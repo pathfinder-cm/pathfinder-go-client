@@ -227,7 +227,7 @@ func (c *client) CreateContainer(hostname string, image string) (*pfmodel.Contai
 }
 
 func (c *client) DeleteContainer(hostname string) (*pfmodel.Container, error) {
-	addr := fmt.Sprintf("%s/%s/%s", c.pfServerAddr, c.pfApiPath["DeleteContainer"], "schedule_deletion")
+	addr := fmt.Sprintf("%s/%s/%s/%s", c.pfServerAddr, c.pfApiPath["DeleteContainer"], hostname, "schedule_deletion")
 	u, err := url.Parse(addr)
 	if err != nil {
 		log.Error(err.Error())
@@ -262,7 +262,7 @@ func (c *client) DeleteContainer(hostname string) (*pfmodel.Container, error) {
 }
 
 func (c *client) RescheduleContainer(hostname string) (*pfmodel.Container, error) {
-	addr := fmt.Sprintf("%s/%s/%s", c.pfServerAddr, c.pfApiPath["RescheduleContainer"], "reschedule")
+	addr := fmt.Sprintf("%s/%s/%s/%s", c.pfServerAddr, c.pfApiPath["RescheduleContainer"], hostname, "reschedule")
 	u, err := url.Parse(addr)
 	if err != nil {
 		log.Error(err.Error())
