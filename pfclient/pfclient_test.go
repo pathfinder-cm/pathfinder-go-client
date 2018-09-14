@@ -10,7 +10,7 @@ import (
 
 func TestRegister(t *testing.T) {
 	node := "test-01"
-	ipAddress := "127.0.0.1"
+	ipaddress := "127.0.0.1"
 
 	b := []byte(`{
 		"api_version": "1.0",
@@ -30,7 +30,7 @@ func TestRegister(t *testing.T) {
 	defer func() { testServer.Close() }()
 
 	pfclient := NewPfclient("default", "", &http.Client{}, testServer.URL, map[string]string{})
-	ok, _ := pfclient.Register(node, ipAddress)
+	ok, _ := pfclient.Register(node, ipaddress)
 
 	if !ok {
 		t.Errorf("Registration unsuccessful")

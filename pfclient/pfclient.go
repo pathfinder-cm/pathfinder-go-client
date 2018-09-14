@@ -14,7 +14,7 @@ import (
 )
 
 type Pfclient interface {
-	Register(node string, ipAddress string) (bool, error)
+	Register(node string, ipaddress string) (bool, error)
 	FetchContainersFromServer(node string) (*pfmodel.ContainerList, error)
 	UpdateIpaddress(node string, hostname string, ipaddress string) (bool, error)
 	MarkContainerAsProvisioned(node string, hostname string) (bool, error)
@@ -48,7 +48,7 @@ func NewPfclient(
 	}
 }
 
-func (p *pfclient) Register(node string, ipAddress string) (bool, error) {
+func (p *pfclient) Register(node string, ipaddress string) (bool, error) {
 	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["Register"])
 	u, err := url.Parse(addr)
 	if err != nil {
@@ -58,7 +58,7 @@ func (p *pfclient) Register(node string, ipAddress string) (bool, error) {
 	q := u.Query()
 	q.Set("cluster_name", p.cluster)
 	q.Set("node_hostname", node)
-	q.Set("node_ip_address", ipAddress)
+	q.Set("node_ipaddress", ipaddress)
 	u.RawQuery = q.Encode()
 
 	form := url.Values{}
