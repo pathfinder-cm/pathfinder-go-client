@@ -14,7 +14,7 @@ Run `go test ./...`
 
 ## Getting Help
 
-If you have any questions or feedback regarding mruby-pathfinder-client:
+If you have any questions or feedback regarding pathfinder-go-client:
 
 - [File an issue](https://github.com/pathfinder-cm/pathfinder-go-client/issues/new) for bugs, issues and feature suggestions.
 
