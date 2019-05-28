@@ -150,24 +150,26 @@ func TestGetNode(t *testing.T) {
 
 func TestGetContainers(t *testing.T) {
 	tables := []struct {
-		hostname     string
-		ipaddress    string
-		image        string
-		nodeHostname string
-		status       string
+		hostname       string
+		ipaddress      string
+		image_alias    string
+		image_server   string
+		image_protocol string
+		nodeHostname   string
+		status         string
 	}{
-		{"test-01", "192.168.1.100", "18.04", "", "PENDING"},
-		{"test-02", "192.168.1.101", "18.04", "test-01", "SCHEDULED"},
-		{"test-03", "192.168.1.102", "18.04", "", "PENDING"},
+		{"test-01", "192.168.1.100", "18.04", "ubuntu", "simplestream", "", "PENDING"},
+		{"test-02", "192.168.1.101", "18.04", "ubuntu", "simplestream", "test-01", "SCHEDULED"},
+		{"test-03", "192.168.1.102", "18.04", "ubuntu", "simplestream", "", "PENDING"},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
 			"items": [
-				{"hostname": "test-01", "ipaddress": "192.168.1.100", "image": "18.04", "node_hostname": "", "status": "PENDING"},
-				{"hostname": "test-02", "ipaddress": "192.168.1.101", "image": "18.04", "node_hostname": "test-01", "status": "SCHEDULED"},
-				{"hostname": "test-03", "ipaddress": "192.168.1.102", "image": "18.04", "node_hostname": "", "status": "PENDING"}
+				{"hostname": "test-01", "ipaddress": "192.168.1.100", "image_alias": "18.04", "image_server": "ubuntu", "image_protocol": "simplestream", "node_hostname": "", "status": "PENDING"},
+				{"hostname": "test-02", "ipaddress": "192.168.1.101", "image_alias": "18.04", "image_server": "ubuntu", "image_protocol": "simplestream", "node_hostname": "test-01", "status": "SCHEDULED"},
+				{"hostname": "test-03", "ipaddress": "192.168.1.102", "image_alias": "18.04", "image_server": "ubuntu", "image_protocol": "simplestream", "node_hostname": "", "status": "PENDING"}
 			]
 		}
 	}`)
@@ -193,16 +195,28 @@ func TestGetContainers(t *testing.T) {
 				table.ipaddress)
 		}
 
-		if (*containers)[i].Image != table.image {
+		if (*containers)[i].ImageAlias != table.image_alias {
 			t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
-				(*containers)[i].Image,
-				table.image)
+				(*containers)[i].ImageAlias,
+				table.image_alias)
+		}
+
+		if (*containers)[i].ImageServer != table.image_server {
+			t.Errorf("Incorrect container Image server generated, got: %s, want: %s.",
+				(*containers)[i].ImageServer,
+				table.image_server)
+		}
+
+		if (*containers)[i].ImageProtocol != table.image_protocol {
+			t.Errorf("Incorrect container Image protocol generated, got: %s, want: %s.",
+				(*containers)[i].ImageProtocol,
+				table.image_protocol)
 		}
 
 		if (*containers)[i].NodeHostname != table.nodeHostname {
 			t.Errorf("Incorrect container Node Hostname generated, got: %s, want: %s.",
 				(*containers)[i].NodeHostname,
-				table.image)
+				table.image_alias)
 		}
 
 		if (*containers)[i].Status != table.status {
@@ -215,13 +229,15 @@ func TestGetContainers(t *testing.T) {
 
 func TestGetContainer(t *testing.T) {
 	tables := []struct {
-		hostname     string
-		ipaddress    string
-		image        string
-		nodeHostname string
-		status       string
+		hostname       string
+		ipaddress      string
+		image_alias    string
+		image_server   string
+		image_protocol string
+		nodeHostname   string
+		status         string
 	}{
-		{"test-02", "192.168.1.101", "18.04", "test-01", "SCHEDULED"},
+		{"test-02", "192.168.1.101", "18.04", "ubuntu", "simplestream", "test-01", "SCHEDULED"},
 	}
 
 	b := []byte(`{
@@ -230,7 +246,9 @@ func TestGetContainer(t *testing.T) {
 			"id": 1,
 			"hostname": "test-02",
 			"ipaddress": "192.168.1.101",
-			"image": "18.04",
+			"image_alias": "18.04",
+			"image_server": "ubuntu",
+			"image_protocol": "simplestream",
 			"node_hostname": "test-01",
 			"status": "SCHEDULED"
 		}
@@ -256,10 +274,22 @@ func TestGetContainer(t *testing.T) {
 			tables[0].ipaddress)
 	}
 
-	if container.Image != tables[0].image {
+	if container.ImageAlias != tables[0].image_alias {
 		t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
-			container.Image,
-			tables[0].image)
+			container.ImageAlias,
+			tables[0].image_alias)
+	}
+
+	if container.ImageServer != tables[0].image_server {
+		t.Errorf("Incorrect container Image server generated, got: %s, want: %s.",
+			container.ImageServer,
+			tables[0].image_server)
+	}
+
+	if container.ImageProtocol != tables[0].image_protocol {
+		t.Errorf("Incorrect container Image protocol generated, got: %s, want: %s.",
+			container.ImageProtocol,
+			tables[0].image_protocol)
 	}
 
 	if container.NodeHostname != tables[0].nodeHostname {
@@ -277,10 +307,12 @@ func TestGetContainer(t *testing.T) {
 
 func TestCreateContainer(t *testing.T) {
 	tables := []struct {
-		hostname string
-		image    string
+		hostname       string
+		image_alias    string
+		image_server   string
+		image_protocol string
 	}{
-		{"test-01", "18.04"},
+		{"test-01", "18.04", "ubuntu", "simplestream"},
 	}
 
 	b := []byte(`{
@@ -289,7 +321,9 @@ func TestCreateContainer(t *testing.T) {
 			"id": 1,
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
-			"image": "18.04",
+			"image_alias": "18.04",
+			"image_server": "ubuntu",
+			"image_protocol": "simplestream",
 			"node_hostname": "test-01",
 			"status": "PENDING"
 		}
@@ -302,7 +336,7 @@ func TestCreateContainer(t *testing.T) {
 	defer func() { testServer.Close() }()
 
 	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
-	container, _ := client.CreateContainer(tables[0].hostname, tables[0].image)
+	container, _ := client.CreateContainer(tables[0].hostname, tables[0].image_alias, tables[0].image_server, tables[0].image_protocol)
 
 	if container.Hostname != tables[0].hostname {
 		t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
@@ -310,10 +344,22 @@ func TestCreateContainer(t *testing.T) {
 			tables[0].hostname)
 	}
 
-	if container.Image != tables[0].image {
+	if container.ImageAlias != tables[0].image_alias {
 		t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
-			container.Image,
-			tables[0].image)
+			container.ImageAlias,
+			tables[0].image_alias)
+	}
+
+	if container.ImageServer != tables[0].image_server {
+		t.Errorf("Incorrect container Image server generated, got: %s, want: %s.",
+			container.ImageServer,
+			tables[0].image_server)
+	}
+
+	if container.ImageProtocol != tables[0].image_protocol {
+		t.Errorf("Incorrect container Image protocol generated, got: %s, want: %s.",
+			container.ImageProtocol,
+			tables[0].image_protocol)
 	}
 }
 
@@ -330,7 +376,9 @@ func TestDeleteContainer(t *testing.T) {
 			"id": 1,
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
-			"image": "18.04",
+			"image_alias": "18.04",
+			"image_server": "ubuntu",
+			"image_protocol": "simplestream",
 			"node_hostname": "test-01",
 			"status": "SCHEDULE_DELETION"
 		}
@@ -365,7 +413,9 @@ func TestRescheduleContainer(t *testing.T) {
 			"id": 1,
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
-			"image": "18.04",
+			"image_alias": "18.04",
+			"image_server": "ubuntu",
+			"image_protocol": "simplestream",
 			"node_hostname": "test-01",
 			"status": "PENDING"
 		}

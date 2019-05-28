@@ -40,22 +40,24 @@ func TestRegister(t *testing.T) {
 func TestFetchContainersFromServer(t *testing.T) {
 	node := "test-01"
 	tables := []struct {
-		hostname string
-		image    string
-		status   string
+		hostname       string
+		image_alias    string
+		image_server   string
+		image_protocol string
+		status         string
 	}{
-		{"test-01", "16.04", "SCHEDULED"},
-		{"test-02", "16.04", "SCHEDULED"},
-		{"test-03", "16.04", "SCHEDULED"},
+		{"test-01", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
+		{"test-02", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
+		{"test-03", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
 			"items": [
-				{"hostname": "test-01", "image": "16.04", "status": "SCHEDULED"},
-				{"hostname": "test-02", "image": "16.04", "status": "SCHEDULED"},
-				{"hostname": "test-03", "image": "16.04", "status": "SCHEDULED"}
+				{"hostname": "test-01", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"},
+				{"hostname": "test-02", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"},
+				{"hostname": "test-03", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"}
 			]
 		}
 	}`)
@@ -75,10 +77,22 @@ func TestFetchContainersFromServer(t *testing.T) {
 				table.hostname)
 		}
 
-		if (*cl)[i].Image != table.image {
-			t.Errorf("Incorrect container image fetched, got: %s, want: %s.",
-				(*cl)[i].Image,
-				table.image)
+		if (*cl)[i].ImageAlias != table.image_alias {
+			t.Errorf("Incorrect container image alias fetched, got: %s, want: %s.",
+				(*cl)[i].ImageAlias,
+				table.image_alias)
+		}
+
+		if (*cl)[i].ImageServer != table.image_server {
+			t.Errorf("Incorrect container image server fetched, got: %s, want: %s.",
+				(*cl)[i].ImageServer,
+				table.image_server)
+		}
+
+		if (*cl)[i].ImageProtocol != table.image_protocol {
+			t.Errorf("Incorrect container image protocol fetched, got: %s, want: %s.",
+				(*cl)[i].ImageProtocol,
+				table.image_protocol)
 		}
 
 		if (*cl)[i].Status != table.status {

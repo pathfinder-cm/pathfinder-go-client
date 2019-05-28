@@ -17,7 +17,7 @@ type Client interface {
 	GetNode(string) (*pfmodel.Node, error)
 	GetContainers() (*pfmodel.ContainerList, error)
 	GetContainer(string) (*pfmodel.Container, error)
-	CreateContainer(string, string) (*pfmodel.Container, error)
+	CreateContainer(string, string, string, string) (*pfmodel.Container, error)
 	DeleteContainer(string) (*pfmodel.Container, error)
 	RescheduleContainer(string) (*pfmodel.Container, error)
 }
@@ -186,7 +186,7 @@ func (c *client) GetContainer(containerHostname string) (*pfmodel.Container, err
 	return container, nil
 }
 
-func (c *client) CreateContainer(hostname string, image string) (*pfmodel.Container, error) {
+func (c *client) CreateContainer(hostname string, image_alias string, image_server string, image_protocol string) (*pfmodel.Container, error) {
 	addr := fmt.Sprintf("%s/%s", c.pfServerAddr, c.pfApiPath["CreateContainer"])
 	u, err := url.Parse(addr)
 	if err != nil {
@@ -199,7 +199,9 @@ func (c *client) CreateContainer(hostname string, image string) (*pfmodel.Contai
 
 	form := url.Values{}
 	form.Set("container[hostname]", hostname)
-	form.Set("container[image]", image)
+	form.Set("container[image_alias]", image_alias)
+	form.Set("container[image_server]", image_server)
+	form.Set("container[image_protocol]", image_protocol)
 	body := bytes.NewBufferString(form.Encode())
 
 	req, err := http.NewRequest(http.MethodPost, u.String(), body)
