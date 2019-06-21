@@ -12,15 +12,7 @@ type ContainerListRes struct {
 }
 
 type ContainerListDataRes struct {
-	Items []ContainerRes `json:"items"`
-}
-
-type ContainerRes struct {
-	Hostname      string `json:"hostname"`
-	ImageAlias    string `json:"image_alias"`
-	ImageServer   string `json:"image_server"`
-	ImageProtocol string `json:"image_protocol"`
-	Status        string `json:"status"`
+	Items []pfmodel.Container `json:"items"`
 }
 
 func NewContainerListFromByte(b []byte) (*pfmodel.ContainerList, error) {
@@ -33,11 +25,21 @@ func NewContainerListFromByte(b []byte) (*pfmodel.ContainerList, error) {
 	cl := make(pfmodel.ContainerList, len(res.Data.Items))
 	for i, c := range res.Data.Items {
 		cl[i] = pfmodel.Container{
-			Hostname:      c.Hostname,
-			ImageAlias:    c.ImageAlias,
-			ImageServer:   c.ImageServer,
-			ImageProtocol: c.ImageProtocol,
-			Status:        c.Status,
+			Hostname:     c.Hostname,
+			Ipaddress:    c.Ipaddress,
+			NodeHostname: c.NodeHostname,
+			Status:       c.Status,
+			Source: pfmodel.Source{
+				Type:        c.Source.Type,
+				Mode:        c.Source.Mode,
+				Alias:       c.Source.Alias,
+				Certificate: c.Source.Certificate,
+				Remote: pfmodel.Remote{
+					Server:   c.Source.Remote.Server,
+					Protocol: c.Source.Remote.Protocol,
+					AuthType: c.Source.Remote.AuthType,
+				},
+			},
 		}
 	}
 

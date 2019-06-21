@@ -2,62 +2,153 @@ package pfclient
 
 import (
 	"testing"
+
+	"github.com/pathfinder-cm/pathfinder-go-client/pfmodel"
 )
 
 func TestNewContainerListFromByte(t *testing.T) {
 	tables := []struct {
-		hostname       string
-		image_alias    string
-		image_server   string
-		image_protocol string
-		status         string
+		container pfmodel.Container
 	}{
-		{"test-01", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
-		{"test-02", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
-		{"test-03", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
+		{
+			pfmodel.Container{
+				Hostname: "test-01",
+				Status:   "SCHEDULED",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
+		{
+			pfmodel.Container{
+				Hostname: "test-02",
+				Status:   "SCHEDULED",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
+		{
+			pfmodel.Container{
+				Hostname: "test-03",
+				Status:   "SCHEDULED",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
 			"items": [
-				{"hostname": "test-01", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"},
-				{"hostname": "test-02", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"},
-				{"hostname": "test-03", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"}
+				{
+					"hostname": "test-01", 
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					}, 
+					"status":"SCHEDULED"
+				},
+				{
+					"hostname": "test-02", 
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					}, 
+					"status":"SCHEDULED"
+				},
+				{
+					"hostname": "test-03", 
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					}, 
+					"status":"SCHEDULED"
+				}
 			]
 		}
 	}`)
-	cl, _ := NewContainerListFromByte(b)
 
+	cl, _ := NewContainerListFromByte(b)
 	for i, table := range tables {
-		if (*cl)[i].Hostname != table.hostname {
+		if (*cl)[i].Hostname != table.container.Hostname {
 			t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
 				(*cl)[i].Hostname,
-				table.hostname)
+				table.container.Hostname)
 		}
 
-		if (*cl)[i].ImageAlias != table.image_alias {
-			t.Errorf("Incorrect container image alias generated, got: %s, want: %s.",
-				(*cl)[i].ImageAlias,
-				table.image_alias)
+		if (*cl)[i].Source.Type != table.container.Source.Type {
+			t.Errorf("Incorrect container source type generated, got: %s, want: %s.",
+				(*cl)[i].Source.Type,
+				table.container.Source.Type)
 		}
 
-		if (*cl)[i].ImageServer != table.image_server {
-			t.Errorf("Incorrect container image server generated, got: %s, want: %s.",
-				(*cl)[i].ImageServer,
-				table.image_server)
+		if (*cl)[i].Source.Mode != table.container.Source.Mode {
+			t.Errorf("Incorrect container source mode generated, got: %s, want: %s.",
+				(*cl)[i].Source.Mode,
+				table.container.Source.Mode)
 		}
 
-		if (*cl)[i].ImageProtocol != table.image_protocol {
-			t.Errorf("Incorrect container image protocol generated, got: %s, want: %s.",
-				(*cl)[i].ImageProtocol,
-				table.image_protocol)
+		if (*cl)[i].Source.Alias != table.container.Source.Alias {
+			t.Errorf("Incorrect container source alias generated, got: %s, want: %s.",
+				(*cl)[i].Source.Alias,
+				table.container.Source.Alias)
 		}
 
-		if (*cl)[i].Status != table.status {
+		if (*cl)[i].Source.Certificate != table.container.Source.Certificate {
+			t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
+				(*cl)[i].Source.Certificate,
+				table.container.Source.Certificate)
+		}
+
+		if (*cl)[i].Source.Remote.Server != table.container.Source.Remote.Server {
+			t.Errorf("Incorrect container remote server generated, got: %s, want: %s.",
+				(*cl)[i].Source.Remote.Server,
+				table.container.Source.Remote.Server)
+		}
+
+		if (*cl)[i].Source.Remote.Protocol != table.container.Source.Remote.Protocol {
+			t.Errorf("Incorrect container remote protocol generated, got: %s, want: %s.",
+				(*cl)[i].Source.Remote.Protocol,
+				table.container.Source.Remote.Protocol)
+		}
+
+		if (*cl)[i].Source.Remote.AuthType != table.container.Source.Remote.AuthType {
+			t.Errorf("Incorrect container remote auth_type generated, got: %s, want: %s.",
+				(*cl)[i].Source.Remote.AuthType,
+				table.container.Source.Remote.AuthType)
+		}
+
+		if (*cl)[i].Status != table.container.Status {
 			t.Errorf("Incorrect container status generated, got: %s, want: %s.",
 				(*cl)[i].Status,
-				table.status)
+				table.container.Status)
 		}
 	}
 }

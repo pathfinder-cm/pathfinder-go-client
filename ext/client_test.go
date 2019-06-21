@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/pathfinder-cm/pathfinder-go-client/pfmodel"
 )
 
 func TestGetNodes(t *testing.T) {
@@ -150,26 +152,101 @@ func TestGetNode(t *testing.T) {
 
 func TestGetContainers(t *testing.T) {
 	tables := []struct {
-		hostname       string
-		ipaddress      string
-		image_alias    string
-		image_server   string
-		image_protocol string
-		nodeHostname   string
-		status         string
+		container pfmodel.Container
 	}{
-		{"test-01", "192.168.1.100", "18.04", "ubuntu", "simplestream", "", "PENDING"},
-		{"test-02", "192.168.1.101", "18.04", "ubuntu", "simplestream", "test-01", "SCHEDULED"},
-		{"test-03", "192.168.1.102", "18.04", "ubuntu", "simplestream", "", "PENDING"},
+		{
+			pfmodel.Container{
+				Hostname:     "test-01",
+				Ipaddress:    "192.168.1.100",
+				NodeHostname: "",
+				Status:       "PENDING",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
+		{
+			pfmodel.Container{
+				Hostname:     "test-02",
+				Ipaddress:    "192.168.1.101",
+				NodeHostname: "node-01",
+				Status:       "SCHEDULED",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
+		{
+			pfmodel.Container{
+				Hostname:     "test-03",
+				Ipaddress:    "192.168.1.102",
+				NodeHostname: "",
+				Status:       "PENDING",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
 			"items": [
-				{"hostname": "test-01", "ipaddress": "192.168.1.100", "image_alias": "18.04", "image_server": "ubuntu", "image_protocol": "simplestream", "node_hostname": "", "status": "PENDING"},
-				{"hostname": "test-02", "ipaddress": "192.168.1.101", "image_alias": "18.04", "image_server": "ubuntu", "image_protocol": "simplestream", "node_hostname": "test-01", "status": "SCHEDULED"},
-				{"hostname": "test-03", "ipaddress": "192.168.1.102", "image_alias": "18.04", "image_server": "ubuntu", "image_protocol": "simplestream", "node_hostname": "", "status": "PENDING"}
+				{
+					"hostname": "test-01",
+					"ipaddress": "192.168.1.100",
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					},
+					"node_hostname": "",
+					"status":"PENDING"
+				},
+				{
+					"hostname": "test-02",
+					"ipaddress": "192.168.1.101",
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					},
+					"node_hostname": "node-01",
+					"status":"SCHEDULED"
+				},
+				{
+					"hostname": "test-03",
+					"ipaddress": "192.168.1.102",
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					},
+					"node_hostname": "",
+					"status":"PENDING"
+				}
 			]
 		}
 	}`)
@@ -182,75 +259,107 @@ func TestGetContainers(t *testing.T) {
 
 	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
 	containers, _ := client.GetContainers()
+
 	for i, table := range tables {
-		if (*containers)[i].Hostname != table.hostname {
+		if (*containers)[i].Hostname != table.container.Hostname {
 			t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
 				(*containers)[i].Hostname,
-				table.hostname)
+				table.container.Hostname)
 		}
 
-		if (*containers)[i].Ipaddress != table.ipaddress {
-			t.Errorf("Incorrect container ipaddress generated, got: %s, want: %s.",
-				(*containers)[i].Ipaddress,
-				table.ipaddress)
+		if (*containers)[i].Source.Type != tables[0].container.Source.Type {
+			t.Errorf("Incorrect container source type generated, got: %s, want: %s.",
+				(*containers)[i].Source.Type,
+				tables[0].container.Source.Type)
 		}
 
-		if (*containers)[i].ImageAlias != table.image_alias {
-			t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
-				(*containers)[i].ImageAlias,
-				table.image_alias)
+		if (*containers)[i].Source.Mode != tables[0].container.Source.Mode {
+			t.Errorf("Incorrect container source mode generated, got: %s, want: %s.",
+				(*containers)[i].Source.Mode,
+				tables[0].container.Source.Mode)
 		}
 
-		if (*containers)[i].ImageServer != table.image_server {
-			t.Errorf("Incorrect container Image server generated, got: %s, want: %s.",
-				(*containers)[i].ImageServer,
-				table.image_server)
+		if (*containers)[i].Source.Alias != tables[0].container.Source.Alias {
+			t.Errorf("Incorrect container source alias generated, got: %s, want: %s.",
+				(*containers)[i].Source.Alias,
+				tables[0].container.Source.Alias)
 		}
 
-		if (*containers)[i].ImageProtocol != table.image_protocol {
-			t.Errorf("Incorrect container Image protocol generated, got: %s, want: %s.",
-				(*containers)[i].ImageProtocol,
-				table.image_protocol)
+		if (*containers)[i].Source.Certificate != tables[0].container.Source.Certificate {
+			t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
+				(*containers)[i].Source.Certificate,
+				tables[0].container.Source.Certificate)
 		}
 
-		if (*containers)[i].NodeHostname != table.nodeHostname {
+		if (*containers)[i].Source.Remote.Server != tables[0].container.Source.Remote.Server {
+			t.Errorf("Incorrect container remote server generated, got: %s, want: %s.",
+				(*containers)[i].Source.Remote.Server,
+				tables[0].container.Source.Remote.Server)
+		}
+
+		if (*containers)[i].Source.Remote.Protocol != tables[0].container.Source.Remote.Protocol {
+			t.Errorf("Incorrect container remote protocol generated, got: %s, want: %s.",
+				(*containers)[i].Source.Remote.Protocol,
+				tables[0].container.Source.Remote.Protocol)
+		}
+
+		if (*containers)[i].Source.Remote.AuthType != tables[0].container.Source.Remote.AuthType {
+			t.Errorf("Incorrect container remote auth_type generated, got: %s, want: %s.",
+				(*containers)[i].Source.Remote.AuthType,
+				tables[0].container.Source.Remote.AuthType)
+		}
+
+		if (*containers)[i].NodeHostname != table.container.NodeHostname {
 			t.Errorf("Incorrect container Node Hostname generated, got: %s, want: %s.",
 				(*containers)[i].NodeHostname,
-				table.image_alias)
+				table.container.NodeHostname)
 		}
 
-		if (*containers)[i].Status != table.status {
+		if (*containers)[i].Status != table.container.Status {
 			t.Errorf("Incorrect container Status generated, got: %s, want: %s.",
 				(*containers)[i].Status,
-				table.status)
+				table.container.Status)
 		}
 	}
 }
 
 func TestGetContainer(t *testing.T) {
 	tables := []struct {
-		hostname       string
-		ipaddress      string
-		image_alias    string
-		image_server   string
-		image_protocol string
-		nodeHostname   string
-		status         string
+		container pfmodel.Container
 	}{
-		{"test-02", "192.168.1.101", "18.04", "ubuntu", "simplestream", "test-01", "SCHEDULED"},
+		{
+			pfmodel.Container{
+				Hostname:     "test-02",
+				Ipaddress:    "192.168.1.101",
+				NodeHostname: "node-01",
+				Status:       "SCHEDULED",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
-			"id": 1,
+			"id": "1",
 			"hostname": "test-02",
 			"ipaddress": "192.168.1.101",
-			"image_alias": "18.04",
-			"image_server": "ubuntu",
-			"image_protocol": "simplestream",
-			"node_hostname": "test-01",
-			"status": "SCHEDULED"
+			"source": {
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+			},
+			"node_hostname": "node-01",
+			"status":"SCHEDULED"
 		}
 	}`)
 
@@ -261,71 +370,105 @@ func TestGetContainer(t *testing.T) {
 	defer func() { testServer.Close() }()
 
 	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
-	container, _ := client.GetContainer(tables[0].hostname)
-	if container.Hostname != tables[0].hostname {
+	container, _ := client.GetContainer(tables[0].container.Hostname)
+
+	if container.Hostname != tables[0].container.Hostname {
 		t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
 			container.Hostname,
-			tables[0].hostname)
+			tables[0].container.Hostname)
 	}
 
-	if container.Ipaddress != tables[0].ipaddress {
-		t.Errorf("Incorrect container ipaddress generated, got: %s, want: %s.",
-			container.Ipaddress,
-			tables[0].ipaddress)
-	}
-
-	if container.ImageAlias != tables[0].image_alias {
-		t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
-			container.ImageAlias,
-			tables[0].image_alias)
-	}
-
-	if container.ImageServer != tables[0].image_server {
-		t.Errorf("Incorrect container Image server generated, got: %s, want: %s.",
-			container.ImageServer,
-			tables[0].image_server)
-	}
-
-	if container.ImageProtocol != tables[0].image_protocol {
-		t.Errorf("Incorrect container Image protocol generated, got: %s, want: %s.",
-			container.ImageProtocol,
-			tables[0].image_protocol)
-	}
-
-	if container.NodeHostname != tables[0].nodeHostname {
-		t.Errorf("Incorrect container Node Hostname generated, got: %s, want: %s.",
+	if container.NodeHostname != tables[0].container.NodeHostname {
+		t.Errorf("Incorrect container NodeHostname generated, got: %s, want: %s.",
 			container.NodeHostname,
-			tables[0].nodeHostname)
+			tables[0].container.NodeHostname)
 	}
 
-	if container.Status != tables[0].status {
+	if container.Status != tables[0].container.Status {
 		t.Errorf("Incorrect container Status generated, got: %s, want: %s.",
 			container.Status,
-			tables[0].status)
+			tables[0].container.Status)
+	}
+
+	if container.Ipaddress != tables[0].container.Ipaddress {
+		t.Errorf("Incorrect container Ipaddress generated, got: %s, want: %s.",
+			container.Ipaddress,
+			tables[0].container.Ipaddress)
+	}
+
+	if container.Source.Type != tables[0].container.Source.Type {
+		t.Errorf("Incorrect container source type generated, got: %s, want: %s.",
+			container.Source.Type,
+			tables[0].container.Source.Type)
+	}
+
+	if container.Source.Mode != tables[0].container.Source.Mode {
+		t.Errorf("Incorrect container source mode generated, got: %s, want: %s.",
+			container.Source.Mode,
+			tables[0].container.Source.Mode)
+	}
+
+	if container.Source.Alias != tables[0].container.Source.Alias {
+		t.Errorf("Incorrect container source alias generated, got: %s, want: %s.",
+			container.Source.Alias,
+			tables[0].container.Source.Alias)
+	}
+
+	if container.Source.Certificate != tables[0].container.Source.Certificate {
+		t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
+			container.Source.Certificate,
+			tables[0].container.Source.Certificate)
+	}
+
+	if container.Source.Remote.Server != tables[0].container.Source.Remote.Server {
+		t.Errorf("Incorrect container remote server generated, got: %s, want: %s.",
+			container.Source.Remote.Server,
+			tables[0].container.Source.Remote.Server)
+	}
+
+	if container.Source.Remote.Protocol != tables[0].container.Source.Remote.Protocol {
+		t.Errorf("Incorrect container remote protocol generated, got: %s, want: %s.",
+			container.Source.Remote.Protocol,
+			tables[0].container.Source.Remote.Protocol)
+	}
+
+	if container.Source.Remote.AuthType != tables[0].container.Source.Remote.AuthType {
+		t.Errorf("Incorrect container remote auth_type generated, got: %s, want: %s.",
+			container.Source.Remote.AuthType,
+			tables[0].container.Source.Remote.AuthType)
 	}
 }
 
 func TestCreateContainer(t *testing.T) {
 	tables := []struct {
-		hostname       string
-		image_alias    string
-		image_server   string
-		image_protocol string
+		container pfmodel.Container
 	}{
-		{"test-01", "18.04", "ubuntu", "simplestream"},
+		{
+			pfmodel.Container{
+				Hostname: "test-01",
+				Source: pfmodel.Source{
+					Type:        "image",
+					Mode:        "pull",
+					Alias:       "16.04",
+					Certificate: "random",
+					Remote: pfmodel.Remote{
+						Server:   "https://cloud-images.ubuntu.com/releases",
+						Protocol: "simplestream",
+						AuthType: "none",
+					},
+				},
+			},
+		},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
-			"id": 1,
 			"hostname": "test-01",
-			"ipaddress": "192.168.1.100",
-			"image_alias": "18.04",
-			"image_server": "ubuntu",
-			"image_protocol": "simplestream",
-			"node_hostname": "test-01",
-			"status": "PENDING"
+			"source": {
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+			}
 		}
 	}`)
 
@@ -336,30 +479,54 @@ func TestCreateContainer(t *testing.T) {
 	defer func() { testServer.Close() }()
 
 	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{})
-	container, _ := client.CreateContainer(tables[0].hostname, tables[0].image_alias, tables[0].image_server, tables[0].image_protocol)
+	container, _ := client.CreateContainer(tables[0].container)
 
-	if container.Hostname != tables[0].hostname {
+	if container.Hostname != tables[0].container.Hostname {
 		t.Errorf("Incorrect container hostname generated, got: %s, want: %s.",
 			container.Hostname,
-			tables[0].hostname)
+			tables[0].container.Hostname)
 	}
 
-	if container.ImageAlias != tables[0].image_alias {
-		t.Errorf("Incorrect container Image generated, got: %s, want: %s.",
-			container.ImageAlias,
-			tables[0].image_alias)
+	if container.Source.Type != tables[0].container.Source.Type {
+		t.Errorf("Incorrect container source type generated, got: %s, want: %s.",
+			container.Source.Type,
+			tables[0].container.Source.Type)
 	}
 
-	if container.ImageServer != tables[0].image_server {
-		t.Errorf("Incorrect container Image server generated, got: %s, want: %s.",
-			container.ImageServer,
-			tables[0].image_server)
+	if container.Source.Mode != tables[0].container.Source.Mode {
+		t.Errorf("Incorrect container source mode generated, got: %s, want: %s.",
+			container.Source.Mode,
+			tables[0].container.Source.Mode)
 	}
 
-	if container.ImageProtocol != tables[0].image_protocol {
-		t.Errorf("Incorrect container Image protocol generated, got: %s, want: %s.",
-			container.ImageProtocol,
-			tables[0].image_protocol)
+	if container.Source.Alias != tables[0].container.Source.Alias {
+		t.Errorf("Incorrect container source alias generated, got: %s, want: %s.",
+			container.Source.Alias,
+			tables[0].container.Source.Alias)
+	}
+
+	if container.Source.Certificate != tables[0].container.Source.Certificate {
+		t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
+			container.Source.Certificate,
+			tables[0].container.Source.Certificate)
+	}
+
+	if container.Source.Remote.Server != tables[0].container.Source.Remote.Server {
+		t.Errorf("Incorrect container remote server generated, got: %s, want: %s.",
+			container.Source.Remote.Server,
+			tables[0].container.Source.Remote.Server)
+	}
+
+	if container.Source.Remote.Protocol != tables[0].container.Source.Remote.Protocol {
+		t.Errorf("Incorrect container remote protocol generated, got: %s, want: %s.",
+			container.Source.Remote.Protocol,
+			tables[0].container.Source.Remote.Protocol)
+	}
+
+	if container.Source.Remote.AuthType != tables[0].container.Source.Remote.AuthType {
+		t.Errorf("Incorrect container remote auth_type generated, got: %s, want: %s.",
+			container.Source.Remote.AuthType,
+			tables[0].container.Source.Remote.AuthType)
 	}
 }
 
@@ -376,9 +543,10 @@ func TestDeleteContainer(t *testing.T) {
 			"id": 1,
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
-			"image_alias": "18.04",
-			"image_server": "ubuntu",
-			"image_protocol": "simplestream",
+			"source": {
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+			},
 			"node_hostname": "test-01",
 			"status": "SCHEDULE_DELETION"
 		}
@@ -413,9 +581,10 @@ func TestRescheduleContainer(t *testing.T) {
 			"id": 1,
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
-			"image_alias": "18.04",
-			"image_server": "ubuntu",
-			"image_protocol": "simplestream",
+			"source": {
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+			},
 			"node_hostname": "test-01",
 			"status": "PENDING"
 		}

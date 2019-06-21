@@ -4,9 +4,8 @@ Library for interfacing with Pathfinder server.
 
 ## Development Setup
 
-1. Ensure that you have golang installed
-2. Install `dep`
-3. Run `dep ensure`
+1. Ensure that you have golang installed, with version >= 1.11.4 (because this project uses go modules).
+2. Run `go build`
 
 ### Running tests
 

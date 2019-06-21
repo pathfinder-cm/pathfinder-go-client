@@ -40,24 +40,49 @@ func TestRegister(t *testing.T) {
 func TestFetchContainersFromServer(t *testing.T) {
 	node := "test-01"
 	tables := []struct {
-		hostname       string
-		image_alias    string
-		image_server   string
-		image_protocol string
-		status         string
+		hostname    string
+		source_type string
+		mode        string
+		alias       string
+		certificate string
+		server      string
+		protocol    string
+		auth_type   string
+		status      string
 	}{
-		{"test-01", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
-		{"test-02", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
-		{"test-03", "16.04", "ubuntu", "simplestream", "SCHEDULED"},
+		{"test-01", "image", "pull", "16.04", "random", "https://cloud-images.ubuntu.com/releases", "simplestream", "none", "SCHEDULED"},
+		{"test-02", "image", "pull", "16.04", "random", "https://cloud-images.ubuntu.com/releases", "simplestream", "none", "SCHEDULED"},
+		{"test-03", "image", "pull", "16.04", "random", "https://cloud-images.ubuntu.com/releases", "simplestream", "none", "SCHEDULED"},
 	}
 
 	b := []byte(`{
 		"api_version": "1.0",
 		"data": {
 			"items": [
-				{"hostname": "test-01", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"},
-				{"hostname": "test-02", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"},
-				{"hostname": "test-03", "image_alias": "16.04", "image_server": "ubuntu", "image_protocol": "simplestream", "status": "SCHEDULED"}
+				{
+					"hostname": "test-01", 
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					}, 
+					"status":"SCHEDULED"
+				},
+				{
+					"hostname": "test-02", 
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					}, 
+					"status":"SCHEDULED"
+				},
+				{
+					"hostname": "test-03", 
+					"source": { 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					}, 
+					"status":"SCHEDULED"
+				}
 			]
 		}
 	}`)
@@ -77,22 +102,46 @@ func TestFetchContainersFromServer(t *testing.T) {
 				table.hostname)
 		}
 
-		if (*cl)[i].ImageAlias != table.image_alias {
-			t.Errorf("Incorrect container image alias fetched, got: %s, want: %s.",
-				(*cl)[i].ImageAlias,
-				table.image_alias)
+		if (*cl)[i].Source.Type != table.source_type {
+			t.Errorf("Incorrect container source type fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Type,
+				table.source_type)
 		}
 
-		if (*cl)[i].ImageServer != table.image_server {
-			t.Errorf("Incorrect container image server fetched, got: %s, want: %s.",
-				(*cl)[i].ImageServer,
-				table.image_server)
+		if (*cl)[i].Source.Mode != table.mode {
+			t.Errorf("Incorrect container source mode fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Mode,
+				table.mode)
 		}
 
-		if (*cl)[i].ImageProtocol != table.image_protocol {
-			t.Errorf("Incorrect container image protocol fetched, got: %s, want: %s.",
-				(*cl)[i].ImageProtocol,
-				table.image_protocol)
+		if (*cl)[i].Source.Alias != table.alias {
+			t.Errorf("Incorrect container source alias fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Alias,
+				table.alias)
+		}
+
+		if (*cl)[i].Source.Certificate != table.certificate {
+			t.Errorf("Incorrect container source certificate fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Certificate,
+				table.certificate)
+		}
+
+		if (*cl)[i].Source.Remote.Server != table.server {
+			t.Errorf("Incorrect container remote server fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Remote.Server,
+				table.server)
+		}
+
+		if (*cl)[i].Source.Remote.Protocol != table.protocol {
+			t.Errorf("Incorrect container remote protocol fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Remote.Protocol,
+				table.protocol)
+		}
+
+		if (*cl)[i].Source.Remote.AuthType != table.auth_type {
+			t.Errorf("Incorrect container remote auth_type fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Remote.AuthType,
+				table.auth_type)
 		}
 
 		if (*cl)[i].Status != table.status {

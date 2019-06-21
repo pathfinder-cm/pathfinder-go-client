@@ -17,7 +17,7 @@ type Client interface {
 	GetNode(string) (*pfmodel.Node, error)
 	GetContainers() (*pfmodel.ContainerList, error)
 	GetContainer(string) (*pfmodel.Container, error)
-	CreateContainer(string, string, string, string) (*pfmodel.Container, error)
+	CreateContainer(pfmodel.Container) (*pfmodel.Container, error)
 	DeleteContainer(string) (*pfmodel.Container, error)
 	RescheduleContainer(string) (*pfmodel.Container, error)
 }
@@ -142,13 +142,13 @@ func (c *client) GetContainers() (*pfmodel.ContainerList, error) {
 	}
 
 	b, _ := ioutil.ReadAll(res.Body)
-	nodes, err := NewContainerListFromByte(b)
+	containers, err := NewContainerListFromByte(b)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 
-	return nodes, nil
+	return containers, nil
 }
 
 func (c *client) GetContainer(containerHostname string) (*pfmodel.Container, error) {
@@ -186,7 +186,7 @@ func (c *client) GetContainer(containerHostname string) (*pfmodel.Container, err
 	return container, nil
 }
 
-func (c *client) CreateContainer(hostname string, image_alias string, image_server string, image_protocol string) (*pfmodel.Container, error) {
+func (c *client) CreateContainer(cntr pfmodel.Container) (*pfmodel.Container, error) {
 	addr := fmt.Sprintf("%s/%s", c.pfServerAddr, c.pfApiPath["CreateContainer"])
 	u, err := url.Parse(addr)
 	if err != nil {
@@ -198,10 +198,13 @@ func (c *client) CreateContainer(hostname string, image_alias string, image_serv
 	u.RawQuery = q.Encode()
 
 	form := url.Values{}
-	form.Set("container[hostname]", hostname)
-	form.Set("container[image_alias]", image_alias)
-	form.Set("container[image_server]", image_server)
-	form.Set("container[image_protocol]", image_protocol)
+	form.Set("container[hostname]", cntr.Hostname)
+	form.Set("container[source][source_type]", cntr.Source.Type)
+	form.Set("container[source][alias]", cntr.Source.Alias)
+	form.Set("container[source][certificate]", cntr.Source.Certificate)
+	form.Set("container[source][mode]", cntr.Source.Mode)
+	form.Set("container[source][remote][server]", cntr.Source.Remote.Server)
+	form.Set("container[source][remote][protocol]", cntr.Source.Remote.Protocol)
 	body := bytes.NewBufferString(form.Encode())
 
 	req, err := http.NewRequest(http.MethodPost, u.String(), body)
@@ -219,13 +222,13 @@ func (c *client) CreateContainer(hostname string, image_alias string, image_serv
 	}
 
 	b, _ := ioutil.ReadAll(res.Body)
-	container, err := NewContainerFromByte(b)
+	cntrRes, err := NewContainerFromByte(b)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 
-	return container, nil
+	return cntrRes, nil
 }
 
 func (c *client) DeleteContainer(hostname string) (*pfmodel.Container, error) {
