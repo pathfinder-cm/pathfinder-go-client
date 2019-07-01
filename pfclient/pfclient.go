@@ -15,7 +15,7 @@ import (
 
 type Pfclient interface {
 	Register(node string, ipaddress string) (bool, error)
-	FetchContainersFromServer(node string) (*pfmodel.ContainerList, error)
+	FetchContainersFromServer(node string, path string) (*pfmodel.ContainerList, error)
 	UpdateIpaddress(node string, hostname string, ipaddress string) (bool, error)
 	MarkContainerAsProvisioned(node string, hostname string) (bool, error)
 	MarkContainerAsProvisionError(node string, hostname string) (bool, error)
@@ -89,8 +89,15 @@ func (p *pfclient) Register(node string, ipaddress string) (bool, error) {
 	return true, nil
 }
 
-func (p *pfclient) FetchContainersFromServer(node string) (*pfmodel.ContainerList, error) {
-	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["ListContainers"])
+func (p *pfclient) FetchContainersFromServer(node string, path string) (*pfmodel.ContainerList, error) {
+	var urlpath string
+	if path == "ListScheduledContainers" {
+		urlpath = p.pfApiPath["ListScheduledContainers"]
+	} else {
+		urlpath = p.pfApiPath["ListProvisionedContainers"]
+	}
+
+	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, urlpath)
 	u, err := url.Parse(addr)
 	if err != nil {
 		log.Error(err.Error())

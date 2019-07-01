@@ -201,10 +201,10 @@ func (c *client) CreateContainer(cntr pfmodel.Container) (*pfmodel.Container, er
 	form.Set("container[hostname]", cntr.Hostname)
 	form.Set("container[source][source_type]", cntr.Source.Type)
 	form.Set("container[source][alias]", cntr.Source.Alias)
-	form.Set("container[source][certificate]", cntr.Source.Certificate)
 	form.Set("container[source][mode]", cntr.Source.Mode)
 	form.Set("container[source][remote][server]", cntr.Source.Remote.Server)
 	form.Set("container[source][remote][protocol]", cntr.Source.Remote.Protocol)
+	form.Set("container[source][remote][certificate]", cntr.Source.Remote.Certificate)
 	body := bytes.NewBufferString(form.Encode())
 
 	req, err := http.NewRequest(http.MethodPost, u.String(), body)

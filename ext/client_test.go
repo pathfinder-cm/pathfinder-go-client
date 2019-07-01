@@ -151,62 +151,72 @@ func TestGetNode(t *testing.T) {
 }
 
 func TestGetContainers(t *testing.T) {
+	bootstrappers := []pfmodel.Bootstrapper{
+		pfmodel.Bootstrapper{
+			Type:         "chef-solo",
+			CookbooksUrl: "127.0.0.1",
+			Attributes:   "{}",
+		},
+	}
 	tables := []struct {
 		container pfmodel.Container
 	}{
 		{
 			pfmodel.Container{
-				Hostname:     "test-01",
-				Ipaddress:    "192.168.1.100",
-				NodeHostname: "",
-				Status:       "PENDING",
+				Hostname:      "test-01",
+				Ipaddress:     "192.168.1.100",
+				NodeHostname:  "",
+				Status:        "PENDING",
+				Bootstrappers: bootstrappers,
 				Source: pfmodel.Source{
-					Type:        "image",
-					Mode:        "pull",
-					Alias:       "16.04",
-					Certificate: "random",
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
 					Remote: pfmodel.Remote{
-						Server:   "https://cloud-images.ubuntu.com/releases",
-						Protocol: "simplestream",
-						AuthType: "none",
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
 					},
 				},
 			},
 		},
 		{
 			pfmodel.Container{
-				Hostname:     "test-02",
-				Ipaddress:    "192.168.1.101",
-				NodeHostname: "node-01",
-				Status:       "SCHEDULED",
+				Hostname:      "test-02",
+				Ipaddress:     "192.168.1.101",
+				NodeHostname:  "node-01",
+				Status:        "SCHEDULED",
+				Bootstrappers: bootstrappers,
 				Source: pfmodel.Source{
-					Type:        "image",
-					Mode:        "pull",
-					Alias:       "16.04",
-					Certificate: "random",
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
 					Remote: pfmodel.Remote{
-						Server:   "https://cloud-images.ubuntu.com/releases",
-						Protocol: "simplestream",
-						AuthType: "none",
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
 					},
 				},
 			},
 		},
 		{
 			pfmodel.Container{
-				Hostname:     "test-03",
-				Ipaddress:    "192.168.1.102",
-				NodeHostname: "",
-				Status:       "PENDING",
+				Hostname:      "test-03",
+				Ipaddress:     "192.168.1.102",
+				NodeHostname:  "",
+				Status:        "PENDING",
+				Bootstrappers: bootstrappers,
 				Source: pfmodel.Source{
-					Type:        "image",
-					Mode:        "pull",
-					Alias:       "16.04",
-					Certificate: "random",
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
 					Remote: pfmodel.Remote{
-						Server:   "https://cloud-images.ubuntu.com/releases",
-						Protocol: "simplestream",
-						AuthType: "none",
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
 					},
 				},
 			},
@@ -220,32 +230,47 @@ func TestGetContainers(t *testing.T) {
 				{
 					"hostname": "test-01",
 					"ipaddress": "192.168.1.100",
-					"source": { 
-						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					"source": {
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none",  "certificate": "random"}
 					},
 					"node_hostname": "",
-					"status":"PENDING"
+					"status":"PENDING",
+					"bootstrappers": [{
+						"bootstrap_type":"chef-solo",
+						"bootstrap_cookbooks_url":"127.0.0.1",
+						"bootstrap_attributes":"{}"
+					}]
 				},
 				{
 					"hostname": "test-02",
 					"ipaddress": "192.168.1.101",
-					"source": { 
-						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					"source": {
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none",  "certificate": "random"}
 					},
 					"node_hostname": "node-01",
-					"status":"SCHEDULED"
+					"status":"SCHEDULED",
+					"bootstrappers": [{
+						"bootstrap_type":"chef-solo",
+						"bootstrap_cookbooks_url":"127.0.0.1",
+						"bootstrap_attributes":"{}"
+					}]
 				},
 				{
 					"hostname": "test-03",
 					"ipaddress": "192.168.1.102",
-					"source": { 
-						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+					"source": {
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none",  "certificate": "random"}
 					},
 					"node_hostname": "",
-					"status":"PENDING"
+					"status":"PENDING",
+					"bootstrappers": [{
+						"bootstrap_type":"chef-solo",
+						"bootstrap_cookbooks_url":"127.0.0.1",
+						"bootstrap_attributes":"{}"
+					}]
 				}
 			]
 		}
@@ -285,12 +310,6 @@ func TestGetContainers(t *testing.T) {
 				tables[0].container.Source.Alias)
 		}
 
-		if (*containers)[i].Source.Certificate != tables[0].container.Source.Certificate {
-			t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
-				(*containers)[i].Source.Certificate,
-				tables[0].container.Source.Certificate)
-		}
-
 		if (*containers)[i].Source.Remote.Server != tables[0].container.Source.Remote.Server {
 			t.Errorf("Incorrect container remote server generated, got: %s, want: %s.",
 				(*containers)[i].Source.Remote.Server,
@@ -315,33 +334,65 @@ func TestGetContainers(t *testing.T) {
 				table.container.NodeHostname)
 		}
 
+		if (*containers)[i].Source.Remote.Certificate != tables[0].container.Source.Remote.Certificate {
+			t.Errorf("Incorrect container remote certificate generated, got: %s, want: %s.",
+				(*containers)[i].Source.Remote.Certificate,
+				tables[0].container.Source.Remote.Certificate)
+		}
+
 		if (*containers)[i].Status != table.container.Status {
 			t.Errorf("Incorrect container Status generated, got: %s, want: %s.",
 				(*containers)[i].Status,
 				table.container.Status)
 		}
+
+		if (*containers)[i].Bootstrappers[0].Type != table.container.Bootstrappers[0].Type {
+			t.Errorf("Incorrect container bootstrap_type generated, got: %s, want: %s.",
+				(*containers)[i].Bootstrappers[0].Type,
+				table.container.Bootstrappers[0].Type)
+		}
+
+		if (*containers)[i].Bootstrappers[0].CookbooksUrl != table.container.Bootstrappers[0].CookbooksUrl {
+			t.Errorf("Incorrect container bootstrap_cookbooks_url generated, got: %s, want: %s.",
+				(*containers)[i].Bootstrappers[0].CookbooksUrl,
+				table.container.Bootstrappers[0].CookbooksUrl)
+		}
+
+		if (*containers)[i].Bootstrappers[0].Attributes != table.container.Bootstrappers[0].Attributes {
+			t.Errorf("Incorrect container bootstrap_type generated, got: %s, want: %s.",
+				(*containers)[i].Bootstrappers[0].Attributes,
+				table.container.Bootstrappers[0].Attributes)
+		}
 	}
 }
 
 func TestGetContainer(t *testing.T) {
+	bootstrappers := []pfmodel.Bootstrapper{
+		pfmodel.Bootstrapper{
+			Type:         "chef-solo",
+			CookbooksUrl: "127.0.0.1",
+			Attributes:   "{}",
+		},
+	}
 	tables := []struct {
 		container pfmodel.Container
 	}{
 		{
 			pfmodel.Container{
-				Hostname:     "test-02",
-				Ipaddress:    "192.168.1.101",
-				NodeHostname: "node-01",
-				Status:       "SCHEDULED",
+				Hostname:      "test-02",
+				Ipaddress:     "192.168.1.101",
+				NodeHostname:  "node-01",
+				Status:        "SCHEDULED",
+				Bootstrappers: bootstrappers,
 				Source: pfmodel.Source{
-					Type:        "image",
-					Mode:        "pull",
-					Alias:       "16.04",
-					Certificate: "random",
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
 					Remote: pfmodel.Remote{
-						Server:   "https://cloud-images.ubuntu.com/releases",
-						Protocol: "simplestream",
-						AuthType: "none",
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
 					},
 				},
 			},
@@ -355,11 +406,16 @@ func TestGetContainer(t *testing.T) {
 			"hostname": "test-02",
 			"ipaddress": "192.168.1.101",
 			"source": {
-				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
 			},
 			"node_hostname": "node-01",
-			"status":"SCHEDULED"
+			"status":"SCHEDULED",
+			"bootstrappers": [{
+				"bootstrap_type":"chef-solo",
+				"bootstrap_cookbooks_url":"127.0.0.1",
+				"bootstrap_attributes":"{}"
+			}]
 		}
 	}`)
 
@@ -414,12 +470,6 @@ func TestGetContainer(t *testing.T) {
 			tables[0].container.Source.Alias)
 	}
 
-	if container.Source.Certificate != tables[0].container.Source.Certificate {
-		t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
-			container.Source.Certificate,
-			tables[0].container.Source.Certificate)
-	}
-
 	if container.Source.Remote.Server != tables[0].container.Source.Remote.Server {
 		t.Errorf("Incorrect container remote server generated, got: %s, want: %s.",
 			container.Source.Remote.Server,
@@ -437,24 +487,56 @@ func TestGetContainer(t *testing.T) {
 			container.Source.Remote.AuthType,
 			tables[0].container.Source.Remote.AuthType)
 	}
+
+	if container.Source.Remote.Certificate != tables[0].container.Source.Remote.Certificate {
+		t.Errorf("Incorrect container remote certificate generated, got: %s, want: %s.",
+			container.Source.Remote.Certificate,
+			tables[0].container.Source.Remote.Certificate)
+	}
+
+	if container.Bootstrappers[0].Type != tables[0].container.Bootstrappers[0].Type {
+		t.Errorf("Incorrect container bootstrap_type generated, got: %s, want: %s.",
+			container.Bootstrappers[0].Type,
+			tables[0].container.Bootstrappers[0].Type)
+	}
+
+	if container.Bootstrappers[0].CookbooksUrl != tables[0].container.Bootstrappers[0].CookbooksUrl {
+		t.Errorf("Incorrect container bootstrap_cookbooks_url generated, got: %s, want: %s.",
+			container.Bootstrappers[0].CookbooksUrl,
+			tables[0].container.Bootstrappers[0].CookbooksUrl)
+	}
+
+	if container.Bootstrappers[0].Attributes != tables[0].container.Bootstrappers[0].Attributes {
+		t.Errorf("Incorrect container bootstrap_attributes generated, got: %s, want: %s.",
+			container.Bootstrappers[0].Attributes,
+			tables[0].container.Bootstrappers[0].Attributes)
+	}
 }
 
 func TestCreateContainer(t *testing.T) {
+	bootstrappers := []pfmodel.Bootstrapper{
+		pfmodel.Bootstrapper{
+			Type:         "chef-solo",
+			CookbooksUrl: "127.0.0.1",
+			Attributes:   "{}",
+		},
+	}
 	tables := []struct {
 		container pfmodel.Container
 	}{
 		{
 			pfmodel.Container{
-				Hostname: "test-01",
+				Hostname:      "test-01",
+				Bootstrappers: bootstrappers,
 				Source: pfmodel.Source{
-					Type:        "image",
-					Mode:        "pull",
-					Alias:       "16.04",
-					Certificate: "random",
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
 					Remote: pfmodel.Remote{
-						Server:   "https://cloud-images.ubuntu.com/releases",
-						Protocol: "simplestream",
-						AuthType: "none",
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
 					},
 				},
 			},
@@ -465,9 +547,14 @@ func TestCreateContainer(t *testing.T) {
 		"api_version": "1.0",
 		"data": {
 			"hostname": "test-01",
+			"bootstrappers": [{
+				"bootstrap_type":"chef-solo",
+				"bootstrap_cookbooks_url":"127.0.0.1",
+				"bootstrap_attributes":"{}"
+			}],
 			"source": {
-				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
 			}
 		}
 	}`)
@@ -505,12 +592,6 @@ func TestCreateContainer(t *testing.T) {
 			tables[0].container.Source.Alias)
 	}
 
-	if container.Source.Certificate != tables[0].container.Source.Certificate {
-		t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
-			container.Source.Certificate,
-			tables[0].container.Source.Certificate)
-	}
-
 	if container.Source.Remote.Server != tables[0].container.Source.Remote.Server {
 		t.Errorf("Incorrect container remote server generated, got: %s, want: %s.",
 			container.Source.Remote.Server,
@@ -528,6 +609,30 @@ func TestCreateContainer(t *testing.T) {
 			container.Source.Remote.AuthType,
 			tables[0].container.Source.Remote.AuthType)
 	}
+
+	if container.Source.Remote.Certificate != tables[0].container.Source.Remote.Certificate {
+		t.Errorf("Incorrect container source certificate generated, got: %s, want: %s.",
+			container.Source.Remote.Certificate,
+			tables[0].container.Source.Remote.Certificate)
+	}
+
+	if container.Bootstrappers[0].Type != tables[0].container.Bootstrappers[0].Type {
+		t.Errorf("Incorrect container bootstrap_type generated, got: %s, want: %s.",
+			container.Bootstrappers[0].Type,
+			tables[0].container.Bootstrappers[0].Type)
+	}
+
+	if container.Bootstrappers[0].CookbooksUrl != tables[0].container.Bootstrappers[0].CookbooksUrl {
+		t.Errorf("Incorrect container bootstrap_cookbooks_url generated, got: %s, want: %s.",
+			container.Bootstrappers[0].CookbooksUrl,
+			tables[0].container.Bootstrappers[0].CookbooksUrl)
+	}
+
+	if container.Bootstrappers[0].Attributes != tables[0].container.Bootstrappers[0].Attributes {
+		t.Errorf("Incorrect container bootstrap_attributes generated, got: %s, want: %s.",
+			container.Bootstrappers[0].Attributes,
+			tables[0].container.Bootstrappers[0].Attributes)
+	}
 }
 
 func TestDeleteContainer(t *testing.T) {
@@ -544,8 +649,8 @@ func TestDeleteContainer(t *testing.T) {
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
 			"source": {
-				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
 			},
 			"node_hostname": "test-01",
 			"status": "SCHEDULE_DELETION"
@@ -582,8 +687,8 @@ func TestRescheduleContainer(t *testing.T) {
 			"hostname": "test-01",
 			"ipaddress": "192.168.1.100",
 			"source": {
-				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"}
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
 			},
 			"node_hostname": "test-01",
 			"status": "PENDING"

@@ -25,19 +25,20 @@ func NewContainerListFromByte(b []byte) (*pfmodel.ContainerList, error) {
 	cl := make(pfmodel.ContainerList, len(res.Data.Items))
 	for i, c := range res.Data.Items {
 		cl[i] = pfmodel.Container{
-			Hostname:     c.Hostname,
-			Ipaddress:    c.Ipaddress,
-			NodeHostname: c.NodeHostname,
-			Status:       c.Status,
+			Hostname:      c.Hostname,
+			Ipaddress:     c.Ipaddress,
+			NodeHostname:  c.NodeHostname,
+			Status:        c.Status,
+			Bootstrappers: c.Bootstrappers,
 			Source: pfmodel.Source{
-				Type:        c.Source.Type,
-				Mode:        c.Source.Mode,
-				Alias:       c.Source.Alias,
-				Certificate: c.Source.Certificate,
+				Type:  c.Source.Type,
+				Mode:  c.Source.Mode,
+				Alias: c.Source.Alias,
 				Remote: pfmodel.Remote{
-					Server:   c.Source.Remote.Server,
-					Protocol: c.Source.Remote.Protocol,
-					AuthType: c.Source.Remote.AuthType,
+					Server:      c.Source.Remote.Server,
+					Protocol:    c.Source.Remote.Protocol,
+					AuthType:    c.Source.Remote.AuthType,
+					Certificate: c.Source.Remote.Certificate,
 				},
 			},
 		}

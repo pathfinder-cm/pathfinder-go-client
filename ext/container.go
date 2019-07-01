@@ -20,19 +20,20 @@ func NewContainerFromByte(b []byte) (*pfmodel.Container, error) {
 	}
 
 	container := pfmodel.Container{
-		Hostname:     res.Data.Hostname,
-		Ipaddress:    res.Data.Ipaddress,
-		NodeHostname: res.Data.NodeHostname,
-		Status:       res.Data.Status,
+		Hostname:      res.Data.Hostname,
+		Ipaddress:     res.Data.Ipaddress,
+		NodeHostname:  res.Data.NodeHostname,
+		Status:        res.Data.Status,
+		Bootstrappers: res.Data.Bootstrappers,
 		Source: pfmodel.Source{
-			Type:        res.Data.Source.Type,
-			Mode:        res.Data.Source.Mode,
-			Alias:       res.Data.Source.Alias,
-			Certificate: res.Data.Source.Certificate,
+			Type:  res.Data.Source.Type,
+			Mode:  res.Data.Source.Mode,
+			Alias: res.Data.Source.Alias,
 			Remote: pfmodel.Remote{
-				Server:   res.Data.Source.Remote.Server,
-				Protocol: res.Data.Source.Remote.Protocol,
-				AuthType: res.Data.Source.Remote.AuthType,
+				Server:      res.Data.Source.Remote.Server,
+				Protocol:    res.Data.Source.Remote.Protocol,
+				AuthType:    res.Data.Source.Remote.AuthType,
+				Certificate: res.Data.Source.Remote.Certificate,
 			},
 		},
 	}

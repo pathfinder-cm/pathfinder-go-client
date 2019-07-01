@@ -39,20 +39,70 @@ func TestRegister(t *testing.T) {
 
 func TestFetchContainersFromServer(t *testing.T) {
 	node := "test-01"
+	bootstrappers := []pfmodel.Bootstrapper{
+		pfmodel.Bootstrapper{
+			Type:         "chef-solo",
+			CookbooksUrl: "127.0.0.1",
+			Attributes:   "{}",
+		},
+	}
 	tables := []struct {
-		hostname    string
-		source_type string
-		mode        string
-		alias       string
-		certificate string
-		server      string
-		protocol    string
-		auth_type   string
-		status      string
+		container pfmodel.Container
 	}{
-		{"test-01", "image", "pull", "16.04", "random", "https://cloud-images.ubuntu.com/releases", "simplestream", "none", "SCHEDULED"},
-		{"test-02", "image", "pull", "16.04", "random", "https://cloud-images.ubuntu.com/releases", "simplestream", "none", "SCHEDULED"},
-		{"test-03", "image", "pull", "16.04", "random", "https://cloud-images.ubuntu.com/releases", "simplestream", "none", "SCHEDULED"},
+		{
+			pfmodel.Container{
+				Hostname:      "test-01",
+				Status:        "SCHEDULED",
+				Bootstrappers: bootstrappers,
+				Source: pfmodel.Source{
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
+					Remote: pfmodel.Remote{
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
+					},
+				},
+			},
+		},
+		{
+			pfmodel.Container{
+				Hostname:      "test-02",
+				Status:        "SCHEDULED",
+				Bootstrappers: bootstrappers,
+				Source: pfmodel.Source{
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
+					Remote: pfmodel.Remote{
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
+					},
+				},
+			},
+		},
+		{
+			pfmodel.Container{
+				Hostname:      "test-03",
+				Status:        "SCHEDULED",
+				Bootstrappers: bootstrappers,
+				Source: pfmodel.Source{
+					Type:  "image",
+					Mode:  "pull",
+					Alias: "16.04",
+					Remote: pfmodel.Remote{
+						Server:      "https://cloud-images.ubuntu.com/releases",
+						Protocol:    "simplestream",
+						AuthType:    "none",
+						Certificate: "random",
+					},
+				},
+			},
+		},
 	}
 
 	b := []byte(`{
@@ -62,26 +112,41 @@ func TestFetchContainersFromServer(t *testing.T) {
 				{
 					"hostname": "test-01", 
 					"source": { 
-						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
 					}, 
-					"status":"SCHEDULED"
+					"status":"SCHEDULED",
+					"bootstrappers": [{
+						"bootstrap_type":"chef-solo",
+						"bootstrap_cookbooks_url":"127.0.0.1",
+						"bootstrap_attributes":"{}"
+					}]
 				},
 				{
 					"hostname": "test-02", 
 					"source": { 
-						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
 					}, 
-					"status":"SCHEDULED"
+					"status":"SCHEDULED",
+					"bootstrappers": [{
+						"bootstrap_type":"chef-solo",
+						"bootstrap_cookbooks_url":"127.0.0.1",
+						"bootstrap_attributes":"{}"
+					}]
 				},
 				{
 					"hostname": "test-03", 
 					"source": { 
-						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04", "certificate": "random",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none"} 
+						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
 					}, 
-					"status":"SCHEDULED"
+					"status":"SCHEDULED",
+					"bootstrappers": [{
+						"bootstrap_type":"chef-solo",
+						"bootstrap_cookbooks_url":"127.0.0.1",
+						"bootstrap_attributes":"{}"
+					}]
 				}
 			]
 		}
@@ -94,60 +159,78 @@ func TestFetchContainersFromServer(t *testing.T) {
 	defer func() { testServer.Close() }()
 
 	pfclient := NewPfclient("default", "", &http.Client{}, testServer.URL, map[string]string{})
-	cl, _ := pfclient.FetchContainersFromServer(node)
+	cl, _ := pfclient.FetchContainersFromServer(node, "ListScheduledContainers")
 	for i, table := range tables {
-		if (*cl)[i].Hostname != table.hostname {
+		if (*cl)[i].Hostname != table.container.Hostname {
 			t.Errorf("Incorrect container hostname fetched, got: %s, want: %s.",
 				(*cl)[i].Hostname,
-				table.hostname)
+				table.container.Hostname)
 		}
 
-		if (*cl)[i].Source.Type != table.source_type {
+		if (*cl)[i].Source.Type != table.container.Source.Type {
 			t.Errorf("Incorrect container source type fetched, got: %s, want: %s.",
 				(*cl)[i].Source.Type,
-				table.source_type)
+				table.container.Source.Type)
 		}
 
-		if (*cl)[i].Source.Mode != table.mode {
+		if (*cl)[i].Source.Mode != table.container.Source.Mode {
 			t.Errorf("Incorrect container source mode fetched, got: %s, want: %s.",
 				(*cl)[i].Source.Mode,
-				table.mode)
+				table.container.Source.Mode)
 		}
 
-		if (*cl)[i].Source.Alias != table.alias {
+		if (*cl)[i].Source.Alias != table.container.Source.Alias {
 			t.Errorf("Incorrect container source alias fetched, got: %s, want: %s.",
 				(*cl)[i].Source.Alias,
-				table.alias)
+				table.container.Source.Alias)
 		}
 
-		if (*cl)[i].Source.Certificate != table.certificate {
-			t.Errorf("Incorrect container source certificate fetched, got: %s, want: %s.",
-				(*cl)[i].Source.Certificate,
-				table.certificate)
-		}
-
-		if (*cl)[i].Source.Remote.Server != table.server {
+		if (*cl)[i].Source.Remote.Server != table.container.Source.Remote.Server {
 			t.Errorf("Incorrect container remote server fetched, got: %s, want: %s.",
 				(*cl)[i].Source.Remote.Server,
-				table.server)
+				table.container.Source.Remote.Server)
 		}
 
-		if (*cl)[i].Source.Remote.Protocol != table.protocol {
+		if (*cl)[i].Source.Remote.Protocol != table.container.Source.Remote.Protocol {
 			t.Errorf("Incorrect container remote protocol fetched, got: %s, want: %s.",
 				(*cl)[i].Source.Remote.Protocol,
-				table.protocol)
+				table.container.Source.Remote.Protocol)
 		}
 
-		if (*cl)[i].Source.Remote.AuthType != table.auth_type {
+		if (*cl)[i].Source.Remote.AuthType != table.container.Source.Remote.AuthType {
 			t.Errorf("Incorrect container remote auth_type fetched, got: %s, want: %s.",
 				(*cl)[i].Source.Remote.AuthType,
-				table.auth_type)
+				table.container.Source.Remote.AuthType)
 		}
 
-		if (*cl)[i].Status != table.status {
+		if (*cl)[i].Source.Remote.Certificate != table.container.Source.Remote.Certificate {
+			t.Errorf("Incorrect container remote certificate fetched, got: %s, want: %s.",
+				(*cl)[i].Source.Remote.Certificate,
+				table.container.Source.Remote.Certificate)
+		}
+
+		if (*cl)[i].Status != table.container.Status {
 			t.Errorf("Incorrect container status fetched, got: %s, want: %s.",
 				(*cl)[i].Status,
-				table.status)
+				table.container.Status)
+		}
+
+		if (*cl)[i].Bootstrappers[0].Type != table.container.Bootstrappers[0].Type {
+			t.Errorf("Incorrect container bootstrap_type generated, got: %s, want: %s.",
+				(*cl)[i].Bootstrappers[0].Type,
+				table.container.Bootstrappers[0].Type)
+		}
+
+		if (*cl)[i].Bootstrappers[0].CookbooksUrl != table.container.Bootstrappers[0].CookbooksUrl {
+			t.Errorf("Incorrect container bootstrap_cookbooks_url generated, got: %s, want: %s.",
+				(*cl)[i].Bootstrappers[0].CookbooksUrl,
+				table.container.Bootstrappers[0].CookbooksUrl)
+		}
+
+		if (*cl)[i].Bootstrappers[0].Attributes != table.container.Bootstrappers[0].Attributes {
+			t.Errorf("Incorrect container bootstrap_attributes generated, got: %s, want: %s.",
+				(*cl)[i].Bootstrappers[0].Attributes,
+				table.container.Bootstrappers[0].Attributes)
 		}
 	}
 }
