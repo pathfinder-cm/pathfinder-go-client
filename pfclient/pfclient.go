@@ -15,7 +15,8 @@ import (
 
 type Pfclient interface {
 	Register(node string, ipaddress string) (bool, error)
-	FetchContainersFromServer(node string, path string) (*pfmodel.ContainerList, error)
+	FetchScheduledContainersFromServer(node string) (*pfmodel.ContainerList, error)
+	FetchProvisionedContainersFromServer(node string) (*pfmodel.ContainerList, error)
 	UpdateIpaddress(node string, hostname string, ipaddress string) (bool, error)
 	MarkContainerAsProvisioned(node string, hostname string) (bool, error)
 	MarkContainerAsProvisionError(node string, hostname string) (bool, error)
@@ -91,15 +92,44 @@ func (p *pfclient) Register(node string, ipaddress string) (bool, error) {
 	return true, nil
 }
 
-func (p *pfclient) FetchContainersFromServer(node string, path string) (*pfmodel.ContainerList, error) {
-	var urlpath string
-	if path == "ListScheduledContainers" {
-		urlpath = p.pfApiPath["ListScheduledContainers"]
-	} else {
-		urlpath = p.pfApiPath["ListProvisionedContainers"]
+func (p *pfclient) FetchScheduledContainersFromServer(node string) (*pfmodel.ContainerList, error) {
+	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["ListScheduledContainers"])
+	u, err := url.Parse(addr)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("cluster_name", p.cluster)
+	q.Set("node_hostname", node)
+	u.RawQuery = q.Encode()
+
+	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+	req.Header.Set("X-Auth-Token", p.token)
+	res, err := p.httpClient.Do(req)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
 	}
 
-	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, urlpath)
+	if res.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(res.Body)
+		log.Error(string(b))
+		return nil, errors.New(string(b))
+	}
+
+	b, _ := ioutil.ReadAll(res.Body)
+	serverContainers, err := NewContainerListFromByte(b)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	return serverContainers, nil
+}
+
+func (p *pfclient) FetchProvisionedContainersFromServer(node string) (*pfmodel.ContainerList, error) {
+	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["ListProvisionedContainers"])
 	u, err := url.Parse(addr)
 	if err != nil {
 		log.Error(err.Error())
