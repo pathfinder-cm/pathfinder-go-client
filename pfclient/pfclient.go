@@ -129,7 +129,7 @@ func (p *pfclient) FetchScheduledContainersFromServer(node string) (*pfmodel.Con
 }
 
 func (p *pfclient) FetchProvisionedContainersFromServer(node string) (*pfmodel.ContainerList, error) {
-	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["ListProvisionedContainers"])
+	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["ListBootstrapScheduledContainers"])
 	u, err := url.Parse(addr)
 	if err != nil {
 		log.Error(err.Error())
