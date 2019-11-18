@@ -24,7 +24,7 @@ func TestNewContainerListFromByte(t *testing.T) {
 		pfmodel.Bootstrapper{
 			Type:         "chef-solo",
 			CookbooksUrl: "127.0.0.1",
-			Attributes:   attributes.(map[string]interface{}),
+			Attributes:   attributes,
 		},
 	}
 	tables := []struct {
