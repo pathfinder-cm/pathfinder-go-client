@@ -1,8 +1,10 @@
 package ext
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/pathfinder-cm/pathfinder-go-client/pfmodel"
@@ -151,11 +153,22 @@ func TestGetNode(t *testing.T) {
 }
 
 func TestGetContainers(t *testing.T) {
+	bytes := []byte(`{
+		"consul":{
+			"hosts":["guro-consul-01"],
+			"config":{
+			"consul.json":{"bind_addr":null}}
+		},
+		"run_list":["role[consul]"]
+	}`)
+	var attributes interface{}
+	json.Unmarshal(bytes, &attributes)
+
 	bootstrappers := []pfmodel.Bootstrapper{
 		pfmodel.Bootstrapper{
 			Type:         "chef-solo",
 			CookbooksUrl: "127.0.0.1",
-			Attributes:   "{}",
+			Attributes:   attributes,
 		},
 	}
 	tables := []struct {
@@ -239,7 +252,7 @@ func TestGetContainers(t *testing.T) {
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
 						"bootstrap_cookbooks_url":"127.0.0.1",
-						"bootstrap_attributes":"{}"
+						"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 					}]
 				},
 				{
@@ -254,7 +267,7 @@ func TestGetContainers(t *testing.T) {
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
 						"bootstrap_cookbooks_url":"127.0.0.1",
-						"bootstrap_attributes":"{}"
+						"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 					}]
 				},
 				{
@@ -269,7 +282,7 @@ func TestGetContainers(t *testing.T) {
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
 						"bootstrap_cookbooks_url":"127.0.0.1",
-						"bootstrap_attributes":"{}"
+						"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 					}]
 				}
 			]
@@ -358,7 +371,7 @@ func TestGetContainers(t *testing.T) {
 				table.container.Bootstrappers[0].CookbooksUrl)
 		}
 
-		if (*containers)[i].Bootstrappers[0].Attributes != table.container.Bootstrappers[0].Attributes {
+		if !reflect.DeepEqual((*containers)[i].Bootstrappers[0].Attributes, table.container.Bootstrappers[0].Attributes) {
 			t.Errorf("Incorrect container bootstrap_type generated, got: %s, want: %s.",
 				(*containers)[i].Bootstrappers[0].Attributes,
 				table.container.Bootstrappers[0].Attributes)
@@ -367,11 +380,22 @@ func TestGetContainers(t *testing.T) {
 }
 
 func TestGetContainer(t *testing.T) {
+	bytes := []byte(`{
+		"consul":{
+			"hosts":["guro-consul-01"],
+			"config":{
+			"consul.json":{"bind_addr":null}}
+		},
+		"run_list":["role[consul]"]
+	}`)
+	var attributes interface{}
+	json.Unmarshal(bytes, &attributes)
+
 	bootstrappers := []pfmodel.Bootstrapper{
 		pfmodel.Bootstrapper{
 			Type:         "chef-solo",
 			CookbooksUrl: "127.0.0.1",
-			Attributes:   "{}",
+			Attributes:   attributes,
 		},
 	}
 	tables := []struct {
@@ -414,7 +438,7 @@ func TestGetContainer(t *testing.T) {
 			"bootstrappers": [{
 				"bootstrap_type":"chef-solo",
 				"bootstrap_cookbooks_url":"127.0.0.1",
-				"bootstrap_attributes":"{}"
+				"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 			}]
 		}
 	}`)
@@ -506,7 +530,7 @@ func TestGetContainer(t *testing.T) {
 			tables[0].container.Bootstrappers[0].CookbooksUrl)
 	}
 
-	if container.Bootstrappers[0].Attributes != tables[0].container.Bootstrappers[0].Attributes {
+	if !reflect.DeepEqual(container.Bootstrappers[0].Attributes, tables[0].container.Bootstrappers[0].Attributes) {
 		t.Errorf("Incorrect container bootstrap_attributes generated, got: %s, want: %s.",
 			container.Bootstrappers[0].Attributes,
 			tables[0].container.Bootstrappers[0].Attributes)
@@ -514,11 +538,22 @@ func TestGetContainer(t *testing.T) {
 }
 
 func TestCreateContainer(t *testing.T) {
+	bytes := []byte(`{
+		"consul":{
+			"hosts":["guro-consul-01"],
+			"config":{
+			"consul.json":{"bind_addr":null}}
+		},
+		"run_list":["role[consul]"]
+	}`)
+	var attributes interface{}
+	json.Unmarshal(bytes, &attributes)
+
 	bootstrappers := []pfmodel.Bootstrapper{
 		pfmodel.Bootstrapper{
 			Type:         "chef-solo",
 			CookbooksUrl: "127.0.0.1",
-			Attributes:   "{}",
+			Attributes:   attributes,
 		},
 	}
 	tables := []struct {
@@ -550,7 +585,7 @@ func TestCreateContainer(t *testing.T) {
 			"bootstrappers": [{
 				"bootstrap_type":"chef-solo",
 				"bootstrap_cookbooks_url":"127.0.0.1",
-				"bootstrap_attributes":"{}"
+				"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 			}],
 			"source": {
 				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
@@ -628,7 +663,7 @@ func TestCreateContainer(t *testing.T) {
 			tables[0].container.Bootstrappers[0].CookbooksUrl)
 	}
 
-	if container.Bootstrappers[0].Attributes != tables[0].container.Bootstrappers[0].Attributes {
+	if !reflect.DeepEqual(container.Bootstrappers[0].Attributes, tables[0].container.Bootstrappers[0].Attributes) {
 		t.Errorf("Incorrect container bootstrap_attributes generated, got: %s, want: %s.",
 			container.Bootstrappers[0].Attributes,
 			tables[0].container.Bootstrappers[0].Attributes)

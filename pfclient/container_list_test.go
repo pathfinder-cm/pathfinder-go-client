@@ -1,17 +1,30 @@
 package pfclient
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/pathfinder-cm/pathfinder-go-client/pfmodel"
 )
 
 func TestNewContainerListFromByte(t *testing.T) {
+	bytes := []byte(`{
+		"consul":{
+			"hosts":["guro-consul-01"],
+			"config":{
+			"consul.json":{"bind_addr":null}}
+		},
+		"run_list":["role[consul]"]
+	}`)
+	var attributes interface{}
+	json.Unmarshal(bytes, &attributes)
+
 	bootstrappers := []pfmodel.Bootstrapper{
 		pfmodel.Bootstrapper{
 			Type:         "chef-solo",
 			CookbooksUrl: "127.0.0.1",
-			Attributes:   "{}",
+			Attributes:   attributes,
 		},
 	}
 	tables := []struct {
@@ -87,7 +100,7 @@ func TestNewContainerListFromByte(t *testing.T) {
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
 						"bootstrap_cookbooks_url":"127.0.0.1",
-						"bootstrap_attributes":"{}"
+						"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 					}]
 				},
 				{
@@ -100,7 +113,7 @@ func TestNewContainerListFromByte(t *testing.T) {
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
 						"bootstrap_cookbooks_url":"127.0.0.1",
-						"bootstrap_attributes":"{}"
+						"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 					}]
 				},
 				{
@@ -113,7 +126,7 @@ func TestNewContainerListFromByte(t *testing.T) {
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
 						"bootstrap_cookbooks_url":"127.0.0.1",
-						"bootstrap_attributes":"{}"
+						"bootstrap_attributes":{"consul":{"hosts":["guro-consul-01"],"config":{"consul.json":{"bind_addr":null}}},"run_list":["role[consul]"]}
 					}]
 				}
 			]
@@ -188,7 +201,7 @@ func TestNewContainerListFromByte(t *testing.T) {
 				table.container.Bootstrappers[0].CookbooksUrl)
 		}
 
-		if (*cl)[i].Bootstrappers[0].Attributes != table.container.Bootstrappers[0].Attributes {
+		if !reflect.DeepEqual((*cl)[i].Bootstrappers[0].Attributes, table.container.Bootstrappers[0].Attributes) {
 			t.Errorf("Incorrect container bootstrap_attributes generated, got: %s, want: %s.",
 				(*cl)[i].Bootstrappers[0].Attributes,
 				table.container.Bootstrappers[0].Attributes)
