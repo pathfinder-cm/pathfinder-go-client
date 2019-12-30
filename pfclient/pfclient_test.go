@@ -494,6 +494,26 @@ func TestMarkContainerAsProvisionError(t *testing.T) {
 	}
 }
 
+func TestMarkContainerAsBootstrapStarted(t *testing.T) {
+	tables := []struct {
+		node     string
+		hostname string
+	}{
+		{"test-01", "test-c-01"},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+	}))
+	defer func() { testServer.Close() }()
+
+	pfclient := NewPfclient("default", "", &http.Client{}, testServer.URL, map[string]string{})
+	ok, _ := pfclient.MarkContainerAsBootstrapStarted(tables[0].node, tables[0].hostname)
+	if ok != true {
+		t.Errorf("Error when marking container as bootstrapped")
+	}
+}
+
 func TestMarkContainerAsBootstrapped(t *testing.T) {
 	tables := []struct {
 		node     string
@@ -578,5 +598,31 @@ func TestStoreMetrics(t *testing.T) {
 	ok, _ := pfclient.StoreMetrics(tables[0].metrics)
 	if ok != true {
 		t.Errorf("Error when storing metrics")
+	}
+}
+
+func TestUpdateContainerStatus(t *testing.T) {
+	tables := []struct {
+		node     string
+		hostname string
+	}{
+		{"test-01", "test-c-01"},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+	}))
+	defer func() { testServer.Close() }()
+
+	pfclient := pfclient{
+		cluster:         "default",
+		clusterPassword: "",
+		httpClient:      &http.Client{},
+		pfServerAddr:    testServer.URL,
+		pfApiPath:       map[string]string{},
+	}
+	ok, _ := updateContainerStatus(&pfclient, tables[0].node, tables[0].hostname, "api/v2/node/containers/mark_bootstrapped")
+	if ok != true {
+		t.Errorf("Error when updating container status")
 	}
 }
