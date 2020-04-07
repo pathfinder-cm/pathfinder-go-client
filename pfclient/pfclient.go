@@ -17,6 +17,7 @@ type Pfclient interface {
 	Register(node, ipaddress string) (bool, error)
 	FetchScheduledContainersFromServer(node string) (*pfmodel.ContainerList, error)
 	FetchProvisionedContainersFromServer(node string) (*pfmodel.ContainerList, error)
+	FetchBootstrappedContainersFromServer(node string) (*pfmodel.ContainerList, error)
 	UpdateIpaddress(node, hostname, ipaddress string) (bool, error)
 	MarkContainerAsProvisioned(node, hostname string) (bool, error)
 	MarkContainerAsProvisionError(node, hostname string) (bool, error)
@@ -132,6 +133,42 @@ func (p *pfclient) FetchScheduledContainersFromServer(node string) (*pfmodel.Con
 
 func (p *pfclient) FetchProvisionedContainersFromServer(node string) (*pfmodel.ContainerList, error) {
 	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["ListBootstrapScheduledContainers"])
+	u, err := url.Parse(addr)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("cluster_name", p.cluster)
+	q.Set("node_hostname", node)
+	u.RawQuery = q.Encode()
+
+	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+	req.Header.Set("X-Auth-Token", p.token)
+	res, err := p.httpClient.Do(req)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(res.Body)
+		log.Error(string(b))
+		return nil, errors.New(string(b))
+	}
+
+	b, _ := ioutil.ReadAll(res.Body)
+	serverContainers, err := NewContainerListFromByte(b)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	return serverContainers, nil
+}
+
+func (p *pfclient) FetchBootstrappedContainersFromServer(node string) (*pfmodel.ContainerList, error) {
+	addr := fmt.Sprintf("%s/%s", p.pfServerAddr, p.pfApiPath["ListHealthcheckBootstrappedContainers"])
 	u, err := url.Parse(addr)
 	if err != nil {
 		log.Error(err.Error())
