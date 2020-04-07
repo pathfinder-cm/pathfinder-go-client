@@ -22,6 +22,7 @@ type Pfclient interface {
 	MarkContainerAsProvisionError(node, hostname string) (bool, error)
 	MarkContainerAsBootstrapStarted(node, hostname string) (bool, error)
 	MarkContainerAsBootstrapped(node, hostname string) (bool, error)
+	MarkContainerAsHealthy(node, hostname string) (bool, error)
 	MarkContainerAsBootstrapError(node, hostname string) (bool, error)
 	MarkContainerAsDeleted(node, hostname string) (bool, error)
 	StoreMetrics(collectedMetrics *pfmodel.Metrics) (bool, error)
@@ -213,6 +214,10 @@ func (p *pfclient) MarkContainerAsBootstrapStarted(node string, hostname string)
 
 func (p *pfclient) MarkContainerAsBootstrapped(node string, hostname string) (bool, error) {
 	return updateContainerStatus(p, node, hostname, p.pfApiPath["MarkBootstrapped"])
+}
+
+func (p *pfclient) MarkContainerAsHealthy(node string, hostname string) (bool, error) {
+	return updateContainerStatus(p, node, hostname, p.pfApiPath["MarkHealthy"])
 }
 
 func (p *pfclient) MarkContainerAsBootstrapError(node string, hostname string) (bool, error) {
