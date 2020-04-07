@@ -110,11 +110,11 @@ func TestFetchScheduledContainersFromServer(t *testing.T) {
 		"data": {
 			"items": [
 				{
-					"hostname": "test-01", 
-					"source": { 
+					"hostname": "test-01",
+					"source": {
 						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
-					}, 
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
+					},
 					"status":"SCHEDULED",
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
@@ -123,11 +123,11 @@ func TestFetchScheduledContainersFromServer(t *testing.T) {
 					}]
 				},
 				{
-					"hostname": "test-02", 
-					"source": { 
+					"hostname": "test-02",
+					"source": {
 						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
-					}, 
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
+					},
 					"status":"SCHEDULED",
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
@@ -136,11 +136,11 @@ func TestFetchScheduledContainersFromServer(t *testing.T) {
 					}]
 				},
 				{
-					"hostname": "test-03", 
-					"source": { 
+					"hostname": "test-03",
+					"source": {
 						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
-					}, 
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
+					},
 					"status":"SCHEDULED",
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
@@ -308,11 +308,11 @@ func TestFetchProvisionedContainersFromServer(t *testing.T) {
 		"data": {
 			"items": [
 				{
-					"hostname": "test-01", 
-					"source": { 
+					"hostname": "test-01",
+					"source": {
 						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
-					}, 
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
+					},
 					"status":"PROVISIONED",
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
@@ -321,11 +321,11 @@ func TestFetchProvisionedContainersFromServer(t *testing.T) {
 					}]
 				},
 				{
-					"hostname": "test-02", 
-					"source": { 
+					"hostname": "test-02",
+					"source": {
 						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
-					}, 
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
+					},
 					"status":"PROVISIONED",
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
@@ -334,11 +334,11 @@ func TestFetchProvisionedContainersFromServer(t *testing.T) {
 					}]
 				},
 				{
-					"hostname": "test-03", 
-					"source": { 
+					"hostname": "test-03",
+					"source": {
 						"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
-						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"} 
-					}, 
+						"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
+					},
 					"status":"PROVISIONED",
 					"bootstrappers": [{
 						"bootstrap_type":"chef-solo",
