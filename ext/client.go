@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/pathfinder-cm/pathfinder-go-client/pfmodel"
 	log "github.com/sirupsen/logrus"
@@ -20,6 +21,7 @@ type Client interface {
 	CreateContainer(pfmodel.Container) (*pfmodel.Container, error)
 	DeleteContainer(string) (*pfmodel.Container, error)
 	RescheduleContainer(string) (*pfmodel.Container, error)
+	RelocateContainer(hostname, nodeHostname, clusterName string) (*pfmodel.Container, error)
 }
 
 type client struct {
@@ -279,6 +281,36 @@ func (c *client) RescheduleContainer(hostname string) (*pfmodel.Container, error
 
 	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
 	req.Header.Set("X-Auth-Token", c.token)
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(res.Body)
+		log.Error(string(b))
+		return nil, errors.New(string(b))
+	}
+
+	b, _ := ioutil.ReadAll(res.Body)
+	container, err := NewContainerFromByte(b)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+
+	return container, nil
+}
+
+func (c *client) RelocateContainer(hostname, nodeHostname, clusterName string) (*pfmodel.Container, error) {
+	addr := fmt.Sprintf("%s/%s/%s/%s", c.pfServerAddr, c.pfApiPath["RelocateContainer"], hostname, "schedule_relocation")
+	bodyTemplate := `{"cluster_name": "%s", "node_hostname": "%s"}`
+	body := fmt.Sprintf(bodyTemplate, clusterName, nodeHostname)
+
+	req, err := http.NewRequest(http.MethodPost, addr, strings.NewReader(body))
+	req.Header.Set("X-Auth-Token", c.token)
+	req.Header.Set("Content-type", "application/json")
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		log.Error(err.Error())

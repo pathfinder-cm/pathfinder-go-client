@@ -2,6 +2,7 @@ package ext
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -744,4 +745,71 @@ func TestRescheduleContainer(t *testing.T) {
 			container.Hostname,
 			tables[0].hostname)
 	}
+}
+
+func TestRelocateContainer(t *testing.T) {
+	tables := []struct {
+		hostname     string
+		nodeHostname string
+		clusterName  string
+	}{
+		{"test-01", "node-02", "cluster-03"},
+	}
+
+	b := []byte(`{
+		"api_version": "1.0",
+		"data": {
+			"id": 1,
+			"hostname": "test-01",
+			"ipaddress": "192.168.1.100",
+			"source": {
+				"source_type":"image", "mode":"pull", "fingerprint":"", "alias":"16.04",
+				"remote": {"server":"https://cloud-images.ubuntu.com/releases", "protocol":"simplestream", "auth_type":"none", "certificate": "random"}
+			},
+			"node_hostname": "node-02",
+			"status": "SCHEDULE_RELOCATION"
+		}
+	}`)
+
+	var calledPath string
+	expectedPath := "/api/v1/ext_app/containers/test-01/schedule_relocation"
+	expectedBody := `{"cluster_name": "cluster-03", "node_hostname": "node-02"}`
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// check content-type
+		contentType := req.Header.Get("Content-type")
+		if "application/json" != contentType {
+			t.Errorf("Incorrect content type, got: %s, want: %s.",
+				contentType,
+				"application/json")
+		}
+
+		// check body
+		gotBody, _ := ioutil.ReadAll(req.Body)
+		if expectedBody != string(gotBody) {
+			t.Errorf("Incorrect body, got: %s, want: %s.",
+				string(gotBody),
+				expectedBody)
+		}
+
+		calledPath = req.URL.Path
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+	}))
+	defer func() { testServer.Close() }()
+
+	client := NewClient("default", "", &http.Client{}, testServer.URL, map[string]string{"RelocateContainer": "api/v1/ext_app/containers"})
+	container, _ := client.RelocateContainer(tables[0].hostname, tables[0].nodeHostname, tables[0].clusterName)
+
+	if container.NodeHostname != tables[0].nodeHostname {
+		t.Errorf("Incorrect node hostname generated, got: %s, want: %s.",
+			container.NodeHostname,
+			tables[0].nodeHostname)
+	}
+
+	if expectedPath != calledPath {
+		t.Errorf("Incorrect path called, got: %s, want: %s.",
+			calledPath,
+			expectedPath)
+	}
+
 }

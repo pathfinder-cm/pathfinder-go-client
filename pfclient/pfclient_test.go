@@ -514,6 +514,60 @@ func TestMarkContainerAsBootstrapStarted(t *testing.T) {
 	}
 }
 
+func TestMarkContainerAsRelocateStarted(t *testing.T) {
+	tables := []struct {
+		node     string
+		hostname string
+	}{
+		{"test-01", "test-c-01"},
+	}
+
+	var calledPath string
+	expectedPath := "relocate_started"
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		calledPath = req.URL.Path
+		res.WriteHeader(http.StatusOK)
+	}))
+	defer func() { testServer.Close() }()
+
+	pfclient := NewPfclient("default", "", &http.Client{}, testServer.URL, map[string]string{"MarkRelocateStarted": expectedPath})
+	ok, _ := pfclient.MarkContainerAsRelocateStarted(tables[0].node, tables[0].hostname)
+	if ok != true {
+		t.Errorf("Error when marking container as relocateStarted")
+	}
+
+	if "/"+expectedPath != calledPath {
+		t.Errorf("Mismatch path called, want: %q, got: %q", expectedPath, calledPath)
+	}
+}
+
+func TestMarkContainerAsRelocateError(t *testing.T) {
+	tables := []struct {
+		node     string
+		hostname string
+	}{
+		{"test-01", "test-c-01"},
+	}
+
+	var calledPath string
+	expectedPath := "relocate_error"
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		calledPath = req.URL.Path
+		res.WriteHeader(http.StatusOK)
+	}))
+	defer func() { testServer.Close() }()
+
+	pfclient := NewPfclient("default", "", &http.Client{}, testServer.URL, map[string]string{"MarkRelocateError": expectedPath})
+	ok, _ := pfclient.MarkContainerAsRelocateError(tables[0].node, tables[0].hostname)
+	if ok != true {
+		t.Errorf("Error when marking container as relocateError")
+	}
+
+	if "/"+expectedPath != calledPath {
+		t.Errorf("Mismatch path called, want: %q, got: %q", expectedPath, calledPath)
+	}
+}
+
 func TestMarkContainerAsBootstrapped(t *testing.T) {
 	tables := []struct {
 		node     string

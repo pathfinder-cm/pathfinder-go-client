@@ -21,6 +21,8 @@ type Pfclient interface {
 	MarkContainerAsProvisioned(node, hostname string) (bool, error)
 	MarkContainerAsProvisionError(node, hostname string) (bool, error)
 	MarkContainerAsBootstrapStarted(node, hostname string) (bool, error)
+	MarkContainerAsRelocateStarted(node, hostname string) (bool, error)
+	MarkContainerAsRelocateError(node, hostname string) (bool, error)
 	MarkContainerAsBootstrapped(node, hostname string) (bool, error)
 	MarkContainerAsBootstrapError(node, hostname string) (bool, error)
 	MarkContainerAsDeleted(node, hostname string) (bool, error)
@@ -209,6 +211,14 @@ func (p *pfclient) MarkContainerAsProvisionError(node string, hostname string) (
 
 func (p *pfclient) MarkContainerAsBootstrapStarted(node string, hostname string) (bool, error) {
 	return updateContainerStatus(p, node, hostname, p.pfApiPath["MarkBootstrapStarted"])
+}
+
+func (p *pfclient) MarkContainerAsRelocateStarted(node string, hostname string) (bool, error) {
+	return updateContainerStatus(p, node, hostname, p.pfApiPath["MarkRelocateStarted"])
+}
+
+func (p *pfclient) MarkContainerAsRelocateError(node string, hostname string) (bool, error) {
+	return updateContainerStatus(p, node, hostname, p.pfApiPath["MarkRelocateError"])
 }
 
 func (p *pfclient) MarkContainerAsBootstrapped(node string, hostname string) (bool, error) {
